@@ -30,7 +30,7 @@
         <button onclick="setFacade()">Ορισμός</button>
     </div>
 
-    <canvas id="drawingCanvas" width="2100" height="2970"></canvas>
+    <canvas id="drawingCanvas" width="1000" height="700"></canvas>
 
     <div class="controls">
         <h3>Προσθήκη Αντικειμένου</h3>
@@ -54,15 +54,24 @@
     <script>
         const canvas = document.getElementById("drawingCanvas");
         const ctx = canvas.getContext("2d");
-        const scale = 100; // 1 μέτρο = 100 pixels
 
         let objects = [];
         let facade = { width: 5, height: 3, x: 0, y: 0 };
+        let scale = 100; // Δυναμική προσαρμογή
 
         function setFacade() {
             facade.width = parseFloat(document.getElementById("facadeWidth").value);
             facade.height = parseFloat(document.getElementById("facadeHeight").value);
+            adjustScale();
             redrawCanvas();
+        }
+
+        function adjustScale() {
+            const maxWidth = canvas.width * 0.7;
+            const maxHeight = canvas.height * 0.7;
+            const scaleX = maxWidth / facade.width;
+            const scaleY = maxHeight / facade.height;
+            scale = Math.min(scaleX, scaleY); // Επιλέγει τη μικρότερη κλίμακα για να ταιριάζει
         }
 
         function addObject() {
@@ -87,7 +96,7 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             let canvasCenterX = canvas.width / 2;
-            let canvasBottomY = canvas.height - 100;
+            let canvasBottomY = canvas.height - 50;
 
             let facadeX = canvasCenterX - (facade.width * scale) / 2;
             let facadeY = canvasBottomY - facade.height * scale;
@@ -168,6 +177,7 @@
             }
         }
 
+        adjustScale();
         redrawCanvas();
     </script>
 </body>
