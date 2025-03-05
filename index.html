@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Αρχιτεκτονικό Σχέδιο</title>
+    <title>Αρχιτεκτονικό Σχέδιο (Πρόσοψη)</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -19,21 +19,23 @@
 </head>
 <body>
     <h2>Εφαρμογή Αρχιτεκτονικού Σχεδίου</h2>
-    <div class="controls">
-        <label>Πλάτος Καμβά: <input type="number" id="canvasWidth" value="800"></label>
-        <label>Ύψος Καμβά: <input type="number" id="canvasHeight" value="500"></label>
-        <button onclick="resizeCanvas()">Ορισμός</button>
-    </div>
 
-    <canvas id="drawingCanvas" width="800" height="500"></canvas>
+    <canvas id="drawingCanvas" width="2100" height="2970"></canvas>
+
+    <h3>Ορισμός Πρόσοψης</h3>
+    <div class="controls">
+        <label>Πλάτος Πρόσοψης (m): <input type="number" id="facadeWidth" value="5"></label>
+        <label>Ύψος Πρόσοψης (m): <input type="number" id="facadeHeight" value="3"></label>
+        <button onclick="setFacade()">Ορισμός Πρόσοψης</button>
+    </div>
 
     <h3>Προσθήκη Αντικειμένου</h3>
     <div class="controls">
         <input type="text" id="objectName" placeholder="Όνομα αντικειμένου">
-        <input type="number" id="objectWidth" placeholder="Πλάτος">
-        <input type="number" id="objectHeight" placeholder="Ύψος">
-        <input type="number" id="posX" placeholder="Απόσταση από Χ">
-        <input type="number" id="posY" placeholder="Απόσταση από Ψ">
+        <input type="number" id="objectWidth" placeholder="Πλάτος (m)">
+        <input type="number" id="objectHeight" placeholder="Ύψος (m)">
+        <input type="number" id="posX" placeholder="Απόσταση Χ (m)">
+        <input type="number" id="posY" placeholder="Απόσταση Ψ (m)">
         <button onclick="addObject()">Προσθήκη</button>
     </div>
 
@@ -45,20 +47,23 @@
     <script>
         const canvas = document.getElementById("drawingCanvas");
         const ctx = canvas.getContext("2d");
-        let objects = [];
+        const scale = 100; // 1 μέτρο = 100 pixels
 
-        function resizeCanvas() {
-            canvas.width = document.getElementById("canvasWidth").value;
-            canvas.height = document.getElementById("canvasHeight").value;
+        let objects = [];
+        let facade = { width: 5, height: 3, x: 0, y: 0 }; // Προεπιλεγμένη πρόσοψη
+
+        function setFacade() {
+            facade.width = parseFloat(document.getElementById("facadeWidth").value);
+            facade.height = parseFloat(document.getElementById("facadeHeight").value);
             redrawCanvas();
         }
 
         function addObject() {
             let name = document.getElementById("objectName").value;
-            let width = parseInt(document.getElementById("objectWidth").value);
-            let height = parseInt(document.getElementById("objectHeight").value);
-            let x = parseInt(document.getElementById("posX").value);
-            let y = parseInt(document.getElementById("posY").value);
+            let width = parseFloat(document.getElementById("objectWidth").value);
+            let height = parseFloat(document.getElementById("objectHeight").value);
+            let x = parseFloat(document.getElementById("posX").value);
+            let y = parseFloat(document.getElementById("posY").value);
 
             if (!name || isNaN(width) || isNaN(height) || isNaN(x) || isNaN(y)) {
                 alert("Συμπληρώστε όλα τα πεδία σωστά!");
@@ -73,17 +78,57 @@
 
         function redrawCanvas() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            let canvasCenterX = canvas.width / 2;
+            let canvasBottomY = canvas.height - 50; // Περιθώριο από κάτω
+
+            // Σχεδίαση πρόσοψης
+            let facadeX = canvasCenterX - (facade.width * scale) / 2;
+            let facadeY = canvasBottomY - facade.height * scale;
+
             ctx.strokeStyle = "black";
             ctx.lineWidth = 2;
-            ctx.strokeRect(0, 0, canvas.width, canvas.height);
+            ctx.strokeRect(facadeX, facadeY, facade.width * scale, facade.height * scale);
 
+            ctx.fillStyle = "black";
+            ctx.font = "16px Arial";
+            ctx.fillText("Πρόσοψη", facadeX + 10, facadeY + 20);
+
+            // Σχεδίαση αντικειμένων
             objects.forEach(obj => {
+                let objX = facadeX + obj.x * scale;
+                let objY = canvasBottomY - (obj.y + obj.height) * scale;
+
                 ctx.fillStyle = "blue";
-                ctx.fillRect(obj.x, obj.y, obj.width, obj.height);
+                ctx.fillRect(objX, objY, obj.width * scale, obj.height * scale);
+
                 ctx.fillStyle = "white";
+                ctx.font = "14px Arial";
+                ctx.fillText(obj.name, objX + 5, objY + 15);
+
+                // Διαστάσεις αντικειμένου
+                ctx.fillStyle = "black";
                 ctx.font = "12px Arial";
-                ctx.fillText(obj.name, obj.x + 5, obj.y + 15);
+                ctx.fillText(`${obj.width}m`, objX + obj.width * scale / 2 - 10, objY - 5);
+                ctx.fillText(`${obj.height}m`, objX - 30, objY + obj.height * scale / 2);
             });
+
+            // Σχεδίαση αξόνων
+            ctx.strokeStyle = "red";
+            ctx.beginPath();
+            ctx.moveTo(facadeX, canvasBottomY);
+            ctx.lineTo(facadeX + facade.width * scale, canvasBottomY);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(facadeX, canvasBottomY);
+            ctx.lineTo(facadeX, canvasBottomY - facade.height * scale);
+            ctx.stroke();
+
+            ctx.fillStyle = "red";
+            ctx.font = "14px Arial";
+            ctx.fillText("Άξονας Χ", facadeX + facade.width * scale + 10, canvasBottomY);
+            ctx.fillText("Άξονας Ψ", facadeX - 50, canvasBottomY - facade.height * scale - 10);
         }
 
         function updateObjectList() {
@@ -91,7 +136,7 @@
             list.innerHTML = "";
             objects.forEach((obj, index) => {
                 let li = document.createElement("li");
-                li.innerHTML = `${obj.name} (Π: ${obj.width}, Υ: ${obj.height}, X: ${obj.x}, Y: ${obj.y}) 
+                li.innerHTML = `${obj.name} (Π: ${obj.width}m, Υ: ${obj.height}m, X: ${obj.x}m, Y: ${obj.y}m) 
                 <button onclick="deleteObject(${index})">Διαγραφή</button>`;
                 list.appendChild(li);
             });
@@ -108,6 +153,8 @@
             updateObjectList();
             redrawCanvas();
         }
+
+        redrawCanvas();
     </script>
 </body>
 </html>
