@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Αρχιτεκτονικό Σχέδιο (Πρόσοψη)</title>
+    <title>Αρχιτεκτονικό Σχέδιο Πρόσοψης</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -11,26 +11,29 @@
         canvas {
             border: 1px solid black;
             background-color: #f8f8f8;
+            display: block;
+            margin: 20px auto;
         }
         .controls {
             margin-bottom: 10px;
+            text-align: center;
         }
     </style>
 </head>
 <body>
-    <h2>Εφαρμογή Αρχιτεκτονικού Σχεδίου</h2>
+    <h2 style="text-align:center;">Εφαρμογή Αρχιτεκτονικού Σχεδίου</h2>
+
+    <div class="controls">
+        <h3>Ορισμός Πρόσοψης</h3>
+        <label>Πλάτος (m): <input type="number" id="facadeWidth" value="5"></label>
+        <label>Ύψος (m): <input type="number" id="facadeHeight" value="3"></label>
+        <button onclick="setFacade()">Ορισμός</button>
+    </div>
 
     <canvas id="drawingCanvas" width="2100" height="2970"></canvas>
 
-    <h3>Ορισμός Πρόσοψης</h3>
     <div class="controls">
-        <label>Πλάτος Πρόσοψης (m): <input type="number" id="facadeWidth" value="5"></label>
-        <label>Ύψος Πρόσοψης (m): <input type="number" id="facadeHeight" value="3"></label>
-        <button onclick="setFacade()">Ορισμός Πρόσοψης</button>
-    </div>
-
-    <h3>Προσθήκη Αντικειμένου</h3>
-    <div class="controls">
+        <h3>Προσθήκη Αντικειμένου</h3>
         <input type="text" id="objectName" placeholder="Όνομα αντικειμένου">
         <input type="number" id="objectWidth" placeholder="Πλάτος (m)">
         <input type="number" id="objectHeight" placeholder="Ύψος (m)">
@@ -42,7 +45,11 @@
     <h3>Αντικείμενα</h3>
     <ul id="objectList"></ul>
 
-    <button onclick="clearCanvas()">Εκκαθάριση Σχεδίου</button>
+    <div class="controls">
+        <button onclick="clearCanvas()">Εκκαθάριση Σχεδίου</button>
+        <button onclick="saveDesign()">Αποθήκευση</button>
+        <button onclick="loadDesign()">Φόρτωση</button>
+    </div>
 
     <script>
         const canvas = document.getElementById("drawingCanvas");
@@ -50,7 +57,7 @@
         const scale = 100; // 1 μέτρο = 100 pixels
 
         let objects = [];
-        let facade = { width: 5, height: 3, x: 0, y: 0 }; // Προεπιλεγμένη πρόσοψη
+        let facade = { width: 5, height: 3, x: 0, y: 0 };
 
         function setFacade() {
             facade.width = parseFloat(document.getElementById("facadeWidth").value);
@@ -80,9 +87,8 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             let canvasCenterX = canvas.width / 2;
-            let canvasBottomY = canvas.height - 50; // Περιθώριο από κάτω
+            let canvasBottomY = canvas.height - 100;
 
-            // Σχεδίαση πρόσοψης
             let facadeX = canvasCenterX - (facade.width * scale) / 2;
             let facadeY = canvasBottomY - facade.height * scale;
 
@@ -94,7 +100,6 @@
             ctx.font = "16px Arial";
             ctx.fillText("Πρόσοψη", facadeX + 10, facadeY + 20);
 
-            // Σχεδίαση αντικειμένων
             objects.forEach(obj => {
                 let objX = facadeX + obj.x * scale;
                 let objY = canvasBottomY - (obj.y + obj.height) * scale;
@@ -106,14 +111,12 @@
                 ctx.font = "14px Arial";
                 ctx.fillText(obj.name, objX + 5, objY + 15);
 
-                // Διαστάσεις αντικειμένου
                 ctx.fillStyle = "black";
                 ctx.font = "12px Arial";
                 ctx.fillText(`${obj.width}m`, objX + obj.width * scale / 2 - 10, objY - 5);
                 ctx.fillText(`${obj.height}m`, objX - 30, objY + obj.height * scale / 2);
             });
 
-            // Σχεδίαση αξόνων
             ctx.strokeStyle = "red";
             ctx.beginPath();
             ctx.moveTo(facadeX, canvasBottomY);
@@ -124,11 +127,6 @@
             ctx.moveTo(facadeX, canvasBottomY);
             ctx.lineTo(facadeX, canvasBottomY - facade.height * scale);
             ctx.stroke();
-
-            ctx.fillStyle = "red";
-            ctx.font = "14px Arial";
-            ctx.fillText("Άξονας Χ", facadeX + facade.width * scale + 10, canvasBottomY);
-            ctx.fillText("Άξονας Ψ", facadeX - 50, canvasBottomY - facade.height * scale - 10);
         }
 
         function updateObjectList() {
@@ -152,6 +150,22 @@
             objects = [];
             updateObjectList();
             redrawCanvas();
+        }
+
+        function saveDesign() {
+            localStorage.setItem("design", JSON.stringify(objects));
+            alert("Το σχέδιο αποθηκεύτηκε!");
+        }
+
+        function loadDesign() {
+            let savedObjects = JSON.parse(localStorage.getItem("design"));
+            if (savedObjects) {
+                objects = savedObjects;
+                updateObjectList();
+                redrawCanvas();
+            } else {
+                alert("Δεν βρέθηκε αποθηκευμένο σχέδιο.");
+            }
         }
 
         redrawCanvas();
