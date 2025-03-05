@@ -1,316 +1,305 @@
-import React, { useState, useMemo } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Trash2, Plus, ArrowRight } from 'lucide-react';
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Αναλογικός Αρχιτεκτονικός Σχεδιαστής Πρόσοψης</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lucide-static@0.321.0/font/lucide.min.css">
+    <style>
+        body { font-family: 'Arial', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div id="root" class="container mx-auto px-4 py-8"></div>
 
-// Διεπαφή για τις διαστάσεις πρόσοψης
-interface FacadeDimensions {
-  width: number;
-  height: number;
-}
+    <script type="text/babel">
+        // Lucide icons mock
+        const Trash2 = ({className}) => React.createElement('svg', {className}, 'Trash');
+        const Plus = ({className}) => React.createElement('svg', {className}, '+');
+        const ArrowRight = ({className}) => React.createElement('svg', {className}, '→');
 
-// Διεπαφή για το αντικείμενο πρόσοψης
-interface FacadeObject {
-  id: string;
-  name: string;
-  width: number;
-  height: number;
-  x: number;
-  y: number;
-  color?: string;
-}
+        // UI Components mock
+        const Card = ({children, className}) => React.createElement('div', {className: `${className} border rounded shadow`}, children);
+        const CardHeader = ({children}) => React.createElement('div', {className: 'p-4 border-b'}, children);
+        const CardTitle = ({children}) => React.createElement('h2', {className: 'text-xl font-bold'}, children);
+        const CardContent = ({children}) => React.createElement('div', {className: 'p-4'}, children);
+        const Input = ({value, onChange, placeholder, className, type}) => 
+            React.createElement('input', {
+                type, 
+                value, 
+                onChange, 
+                placeholder, 
+                className: `${className} border rounded px-2 py-1`
+            });
+        const Button = ({children, onClick, variant, className}) => 
+            React.createElement('button', {
+                onClick, 
+                className: `${className} px-4 py-2 rounded ${
+                    variant === 'destructive' ? 'bg-red-500 text-white' : 'bg-blue-500 text-white'
+                }`
+            }, children);
 
-const ProportionalArchitecturalFacadePlanner: React.FC = () => {
-  // Κατάσταση για τις διαστάσεις της πρόσοψης
-  const [facadeDimensions, setFacadeDimensions] = useState<FacadeDimensions | null>(null);
-  
-  // Κατάσταση για τα αντικείμενα της πρόσοψης
-  const [objects, setObjects] = useState<FacadeObject[]>([]);
-  
-  // Κατάσταση για το προσωρινό input
-  const [inputText, setInputText] = useState<string>('');
+        const ProportionalArchitecturalFacadePlanner = () => {
+            const [facadeDimensions, setFacadeDimensions] = React.useState(null);
+            const [objects, setObjects] = React.useState([]);
+            const [inputText, setInputText] = React.useState('');
+            const [stage, setStage] = React.useState('dimensions');
 
-  // Στάδιο της εφαρμογής
-  const [stage, setStage] = useState<'dimensions' | 'objects'>('dimensions');
+            const svgViewBox = React.useMemo(() => {
+                if (!facadeDimensions) return { viewBox: '0 0 10 10', scale: 1 };
+                
+                const aspectRatio = facadeDimensions.width / facadeDimensions.height;
+                
+                if (aspectRatio > 1) {
+                    const scaledHeight = 10 / aspectRatio;
+                    return {
+                        viewBox: `0 0 10 ${scaledHeight}`,
+                        scale: 10 / facadeDimensions.width
+                    };
+                } else {
+                    const scaledWidth = 10 * aspectRatio;
+                    return {
+                        viewBox: `0 0 ${scaledWidth} 10`,
+                        scale: 10 / facadeDimensions.height
+                    };
+                }
+            }, [facadeDimensions]);
 
-  // Υπολογισμός κλίμακας και αναλογιών
-  const svgViewBox = useMemo(() => {
-    if (!facadeDimensions) return { viewBox: '0 0 10 10', scale: 1 };
-    
-    // Υπολογισμός της καλύτερης κλίμακας για να διατηρηθούν οι αναλογίες
-    const aspectRatio = facadeDimensions.width / facadeDimensions.height;
-    
-    // Επιλογή κατάλληλης προβολής
-    if (aspectRatio > 1) {
-      // Πλατιά πρόσοψη
-      const scaledHeight = 10 / aspectRatio;
-      return {
-        viewBox: `0 0 10 ${scaledHeight}`,
-        scale: 10 / facadeDimensions.width
-      };
-    } else {
-      // Ψηλή πρόσοψη
-      const scaledWidth = 10 * aspectRatio;
-      return {
-        viewBox: `0 0 ${scaledWidth} 10`,
-        scale: 10 / facadeDimensions.height
-      };
-    }
-  }, [facadeDimensions]);
+            const setFacadeSize = () => {
+                const parts = inputText.split(',').map(part => parseFloat(part.trim()));
+                
+                if (parts.length !== 2 || isNaN(parts[0]) || isNaN(parts[1])) {
+                    alert('Παρακαλώ εισάγετε 2 τιμές: πλάτος, ύψος');
+                    return;
+                }
 
-  // Ορισμός διαστάσεων πρόσοψης
-  const setFacadeSize = () => {
-    const parts = inputText.split(',').map(part => parseFloat(part.trim()));
-    
-    if (parts.length !== 2 || isNaN(parts[0]) || isNaN(parts[1])) {
-      alert('Παρακαλώ εισάγετε 2 τιμές: πλάτος, ύψος');
-      return;
-    }
+                setFacadeDimensions({
+                    width: parts[0],
+                    height: parts[1]
+                });
+                setStage('objects');
+                setInputText('');
+            };
 
-    setFacadeDimensions({
-      width: parts[0],
-      height: parts[1]
-    });
-    setStage('objects');
-    setInputText('');
-  };
+            const addObject = () => {
+                const parts = inputText.split(',').map(part => part.trim());
+                
+                if (parts.length < 5) {
+                    alert('Παρακαλώ εισάγετε τουλάχιστον: όνομα, πλάτος, ύψος, x, y');
+                    return;
+                }
 
-  // Προσθήκη νέου αντικειμένου
-  const addObject = () => {
-    // Διαχωρισμός του input σε τμήματα
-    const parts = inputText.split(',').map(part => part.trim());
-    
-    // Έλεγχος εγκυρότητας εισόδου
-    if (parts.length < 5) {
-      alert('Παρακαλώ εισάγετε τουλάχιστον: όνομα, πλάτος, ύψος, x, y');
-      return;
-    }
+                if (!facadeDimensions) {
+                    alert('Πρώτα πρέπει να ορίσετε τις διαστάσεις της πρόσοψης');
+                    return;
+                }
 
-    // Έλεγχος ορίων
-    if (!facadeDimensions) {
-      alert('Πρώτα πρέπει να ορίσετε τις διαστάσεις της πρόσοψης');
-      return;
-    }
+                try {
+                    const newObject = {
+                        id: Date.now().toString(),
+                        name: parts[0],
+                        width: parseFloat(parts[1]),
+                        height: parseFloat(parts[2]),
+                        x: parseFloat(parts[3]),
+                        y: parseFloat(parts[4]),
+                        color: parts[5] || 'rgba(0,0,255,0.3)'
+                    };
 
-    try {
-      const newObject: FacadeObject = {
-        id: Date.now().toString(), // Μοναδικό αναγνωριστικό
-        name: parts[0],
-        width: parseFloat(parts[1]),
-        height: parseFloat(parts[2]),
-        x: parseFloat(parts[3]),
-        y: parseFloat(parts[4]),
-        color: parts[5] || 'rgba(0,0,255,0.3)' // Προαιρετικό χρώμα
-      };
+                    if (
+                        newObject.x < 0 || 
+                        newObject.y < 0 || 
+                        newObject.x + newObject.width > facadeDimensions.width ||
+                        newObject.y + newObject.height > facadeDimensions.height
+                    ) {
+                        alert('Το αντικείμενο βρίσκεται εκτός των ορίων της πρόσοψης');
+                        return;
+                    }
 
-      // Έλεγχος ορίων τοποθέτησης
-      if (
-        newObject.x < 0 || 
-        newObject.y < 0 || 
-        newObject.x + newObject.width > facadeDimensions.width ||
-        newObject.y + newObject.height > facadeDimensions.height
-      ) {
-        alert('Το αντικείμενο βρίσκεται εκτός των ορίων της πρόσοψης');
-        return;
-      }
+                    setObjects([...objects, newObject]);
+                    setInputText('');
+                } catch (error) {
+                    alert('Παρακαλώ εισάγετε έγκυρους αριθμούς');
+                }
+            };
 
-      // Προσθήκη του νέου αντικειμένου
-      setObjects([...objects, newObject]);
-      
-      // Καθαρισμός του input
-      setInputText('');
-    } catch (error) {
-      alert('Παρακαλώ εισάγετε έγκυρους αριθμούς');
-    }
-  };
+            const removeObject = (idToRemove) => {
+                setObjects(objects.filter(obj => obj.id !== idToRemove));
+            };
 
-  // Διαγραφή αντικειμένου
-  const removeObject = (idToRemove: string) => {
-    setObjects(objects.filter(obj => obj.id !== idToRemove));
-  };
+            const resetDesign = () => {
+                setFacadeDimensions(null);
+                setObjects([]);
+                setStage('dimensions');
+            };
 
-  // Επανεκκίνηση σχεδιασμού
-  const resetDesign = () => {
-    setFacadeDimensions(null);
-    setObjects([]);
-    setStage('dimensions');
-  };
+            const renderFacade = () => {
+                if (!facadeDimensions) return null;
 
-  // Απεικόνιση πρόσοψης
-  const renderFacade = () => {
-    if (!facadeDimensions) return null;
+                return React.createElement('svg', {
+                    viewBox: svgViewBox.viewBox,
+                    preserveAspectRatio: "xMidYMid meet",
+                    className: "w-full h-96 border-2 border-gray-300"
+                }, [
+                    // Περίγραμμα πρόσοψης
+                    React.createElement('rect', {
+                        x: "0",
+                        y: "0", 
+                        width: facadeDimensions.width * svgViewBox.scale,
+                        height: facadeDimensions.height * svgViewBox.scale,
+                        fill: "none",
+                        stroke: "gray",
+                        strokeWidth: "0.1"
+                    }),
 
-    return (
-      <svg 
-        viewBox={svgViewBox.viewBox}
-        preserveAspectRatio="xMidYMid meet"
-        className="w-full h-96 border-2 border-gray-300"
-      >
-        {/* Βασικό περίγραμμα πρόσοψης */}
-        <rect 
-          x="0" 
-          y="0" 
-          width={facadeDimensions.width * svgViewBox.scale} 
-          height={facadeDimensions.height * svgViewBox.scale} 
-          fill="none" 
-          stroke="gray" 
-          strokeWidth="0.1" 
-        />
+                    // Αντικείμενα
+                    ...objects.flatMap((obj) => [
+                        React.createElement('rect', {
+                            key: `rect-${obj.id}`,
+                            x: obj.x * svgViewBox.scale,
+                            y: (facadeDimensions.height - (obj.y + obj.height)) * svgViewBox.scale,
+                            width: obj.width * svgViewBox.scale,
+                            height: obj.height * svgViewBox.scale,
+                            fill: obj.color,
+                            stroke: "blue",
+                            strokeWidth: "0.05"
+                        }),
+                        React.createElement('text', {
+                            key: `text-${obj.id}`,
+                            x: (obj.x + obj.width / 2) * svgViewBox.scale,
+                            y: (facadeDimensions.height - obj.y) * svgViewBox.scale + 0.5,
+                            fontSize: `${0.5 * svgViewBox.scale}`,
+                            textAnchor: "middle",
+                            fill: "black"
+                        }, obj.name)
+                    ]),
 
-        {/* Απεικόνιση κάθε αντικειμένου */}
-        {objects.map((obj) => (
-          <g key={obj.id}>
-            <rect 
-              x={obj.x * svgViewBox.scale} 
-              y={(facadeDimensions.height - (obj.y + obj.height)) * svgViewBox.scale} 
-              width={obj.width * svgViewBox.scale} 
-              height={obj.height * svgViewBox.scale} 
-              fill={obj.color} 
-              stroke="blue"
-              strokeWidth="0.05"
-            />
-            <text 
-              x={(obj.x + obj.width / 2) * svgViewBox.scale} 
-              y={(facadeDimensions.height - obj.y) * svgViewBox.scale + 0.3} 
-              fontSize={`${0.3 * svgViewBox.scale}`} 
-              textAnchor="middle"
-              fill="rgba(0,0,0,0.7)"
-              fontStyle="italic"
-            >
-              {obj.name}
-            </text>
-          </g>
-        ))}
+                    // Κάναβος
+                    ...[...Array(Math.ceil(facadeDimensions.width))].map((_, x) => 
+                        React.createElement('line', {
+                            key: `vertical-${x}`,
+                            x1: x * svgViewBox.scale,
+                            y1: "0",
+                            x2: x * svgViewBox.scale,
+                            y2: facadeDimensions.height * svgViewBox.scale,
+                            stroke: "#e0e0e0",
+                            strokeWidth: "0.05",
+                            strokeDasharray: "0.2,0.2"
+                        })
+                    ),
+                    ...[...Array(Math.ceil(facadeDimensions.height))].map((_, y) => 
+                        React.createElement('line', {
+                            key: `horizontal-${y}`,
+                            x1: "0",
+                            y1: y * svgViewBox.scale,
+                            x2: facadeDimensions.width * svgViewBox.scale,
+                            y2: y * svgViewBox.scale,
+                            stroke: "#e0e0e0",
+                            strokeWidth: "0.05",
+                            strokeDasharray: "0.2,0.2"
+                        })
+                    )
+                ]);
+            };
 
-        {/* Προσθήκη κανάβου για καλύτερη αναφορά */}
-        {[...Array(Math.ceil(facadeDimensions.width))].map((_, x) => (
-          <line 
-            key={`vertical-${x}`}
-            x1={x * svgViewBox.scale} 
-            y1="0" 
-            x2={x * svgViewBox.scale} 
-            y2={facadeDimensions.height * svgViewBox.scale} 
-            stroke="#e0e0e0" 
-            strokeWidth="0.05"
-            strokeDasharray="0.2,0.2"
-          />
-        ))}
-        {[...Array(Math.ceil(facadeDimensions.height))].map((_, y) => (
-          <line 
-            key={`horizontal-${y}`}
-            x1="0" 
-            y1={y * svgViewBox.scale} 
-            x2={facadeDimensions.width * svgViewBox.scale} 
-            y2={y * svgViewBox.scale} 
-            stroke="#e0e0e0" 
-            strokeWidth="0.05"
-            strokeDasharray="0.2,0.2"
-          />
-        ))}
-      </svg>
-    );
-  };
+            return React.createElement(Card, {className: "w-full max-w-4xl mx-auto"}, [
+                React.createElement(CardHeader, null, 
+                    React.createElement(CardTitle, null, "Αναλογικός Αρχιτεκτονικός Σχεδιαστής Πρόσοψης")
+                ),
+                React.createElement(CardContent, null, [
+                    React.createElement('div', {className: "mb-4"}, [
+                        stage === 'dimensions' ? [
+                            React.createElement('p', {className: "text-sm text-gray-600 mb-2"}, 
+                                "Εισάγετε τις διαστάσεις της πρόσοψης:"
+                            ),
+                            React.createElement('p', {className: "text-sm text-gray-600 mb-4"}, 
+                                "Μορφή: πλάτος,ύψος (σε μέτρα)"
+                            ),
+                            React.createElement('div', {className: "flex space-x-2"}, [
+                                React.createElement(Input, {
+                                    type: "text",
+                                    value: inputText,
+                                    onChange: (e) => setInputText(e.target.value),
+                                    placeholder: "Πχ. 10,8 (πλάτος 10m, ύψος 8m)",
+                                    className: "flex-grow"
+                                }),
+                                React.createElement(Button, {
+                                    onClick: setFacadeSize
+                                }, [
+                                    React.createElement(ArrowRight, {className: "mr-2"}),
+                                    "Επόμενο"
+                                ])
+                            ])
+                        ] : [
+                            React.createElement('p', {className: "text-sm text-gray-600 mb-2"}, 
+                                "Το σημείο 0,0 είναι η κάτω αριστερή γωνία της πρόσοψης"
+                            ),
+                            React.createElement('p', {className: "text-sm text-gray-600 mb-4"}, 
+                                "Εισάγετε αντικείμενα με τη μορφή: όνομα,πλάτος,ύψος,x,y,χρώμα(προαιρετικό)"
+                            ),
+                            React.createElement('p', {className: "text-sm text-gray-600 mb-4"}, 
+                                "Παράδειγμα: πόρτα,1.2,2.1,1.5,0,rgba(255,0,0,0.3)"
+                            ),
+                            React.createElement('div', {className: "flex space-x-2"}, [
+                                React.createElement(Input, {
+                                    type: "text",
+                                    value: inputText,
+                                    onChange: (e) => setInputText(e.target.value),
+                                    placeholder: "Εισάγετε αντικείμενο",
+                                    className: "flex-grow"
+                                }),
+                                React.createElement(Button, {
+                                    onClick: addObject
+                                }, [
+                                    React.createElement(Plus, {className: "mr-2"}),
+                                    "Προσθήκη"
+                                ])
+                            ])
+                        ]
+                    ]),
 
-  return (
-    <Card className="w-full max-w-4xl mx-auto">
-      <CardHeader>
-        <CardTitle>Αναλογικός Αρχιτεκτονικός Σχεδιαστής Πρόσοψης</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="mb-4">
-          {stage === 'dimensions' ? (
-            <>
-              <p className="text-sm text-gray-600 mb-2">
-                Εισάγετε τις διαστάσεις της πρόσοψης:
-              </p>
-              <p className="text-sm text-gray-600 mb-4">
-                Μορφή: πλάτος,ύψος (σε μέτρα)
-              </p>
-              <div className="flex space-x-2">
-                <Input 
-                  type="text"
-                  value={inputText}
-                  onChange={(e) => setInputText(e.target.value)}
-                  placeholder="Πχ. 10,8 (πλάτος 10m, ύψος 8m)"
-                  className="flex-grow"
-                />
-                <Button onClick={setFacadeSize}>
-                  <ArrowRight className="mr-2" /> Επόμενο
-                </Button>
-              </div>
-            </>
-          ) : (
-            <>
-              <p className="text-sm text-gray-600 mb-2">
-                Το σημείο 0,0 είναι η κάτω αριστερή γωνία της πρόσοψης
-              </p>
-              <p className="text-sm text-gray-600 mb-4">
-                Εισάγετε αντικείμενα με τη μορφή: όνομα,πλάτος,ύψος,x,y,χρώμα(προαιρετικό)
-              </p>
-              <p className="text-sm text-gray-600 mb-4">
-                Παράδειγμα: πόρτα,1.2,2.1,1.5,0,rgba(255,0,0,0.3)
-              </p>
-              <div className="flex space-x-2">
-                <Input 
-                  type="text"
-                  value={inputText}
-                  onChange={(e) => setInputText(e.target.value)}
-                  placeholder="Εισάγετε αντικείμενο"
-                  className="flex-grow"
-                />
-                <Button onClick={addObject}>
-                  <Plus className="mr-2" /> Προσθήκη
-                </Button>
-              </div>
-            </>
-          )}
-        </div>
+                    // Λίστα αντικειμένων
+                    stage === 'objects' && objects.length > 0 && 
+                    React.createElement('div', {className: "mb-4"}, [
+                        React.createElement('h3', {className: "text-lg font-semibold mb-2"}, "Αντικείμενα"),
+                        ...objects.map(obj => 
+                            React.createElement('div', {
+                                key: obj.id,
+                                className: "flex justify-between items-center bg-gray-100 p-2 mb-2 rounded"
+                            }, [
+                                React.createElement('span', null, 
+                                    `${obj.name} (Πλάτος: ${obj.width}m, Ύψος: ${obj.height}m, X: ${obj.x}m, Y: ${obj.y}m)`
+                                ),
+                                React.createElement(Button, {
+                                    variant: "destructive",
+                                    onClick: () => removeObject(obj.id)
+                                }, [
+                                    React.createElement(Trash2, {className: "h-4 w-4"})
+                                ])
+                            ])
+                        )
+                    ]),
 
-        {/* Λίστα προστιθέμενων αντικειμένων */}
-        {stage === 'objects' && (
-          <div className="mb-4">
-            <h3 className="text-lg font-semibold mb-2">Αντικείμενα</h3>
-            {objects.map((obj) => (
-              <div 
-                key={obj.id} 
-                className="flex justify-between items-center bg-gray-100 p-2 mb-2 rounded"
-              >
-                <span>
-                  {obj.name} (Πλάτος: {obj.width}m, Ύψος: {obj.height}m, 
-                  X: {obj.x}m, Y: {obj.y}m)
-                </span>
-                <Button 
-                  variant="destructive" 
-                  size="icon" 
-                  onClick={() => removeObject(obj.id)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            ))}
-          </div>
-        )}
+                    // Απεικόνιση πρόσοψης
+                    facadeDimensions && 
+                    React.createElement('div', null, [
+                        React.createElement('h3', {className: "text-lg font-semibold mb-2"}, "Απεικόνιση Πρόσοψης"),
+                        renderFacade()
+                    ]),
 
-        {/* Απεικόνιση πρόσοψης */}
-        {facadeDimensions && (
-          <div>
-            <h3 className="text-lg font-semibold mb-2">Απεικόνιση Πρόσοψης</h3>
-            {renderFacade()}
-          </div>
-        )}
+                    // Κουμπί επανεκκίνησης
+                    facadeDimensions && 
+                    React.createElement('div', {className: "mt-4"}, 
+                        React.createElement(Button, {
+                            variant: "destructive",
+                            onClick: resetDesign
+                        }, "Επανεκκίνηση Σχεδιασμού")
+                    )
+                ])
+            ]);
+        };
 
-        {/* Κουμπί επανεκκίνησης */}
-        {facadeDimensions && (
-          <div className="mt-4">
-            <Button variant="destructive" onClick={resetDesign}>
-              Επανεκκίνηση Σχεδιασμού
-            </Button>
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  );
-};
-
-export default ProportionalArchitecturalFacadePlanner;
+        // Render the application
