@@ -3,163 +3,111 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Σχεδιαστής Πρόσοψης</title>
-    
-    <!-- React & Babel -->
-    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
-    
-    <!-- TailwindCSS μέσω CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-
+    <title>Αρχιτεκτονικό Σχέδιο</title>
     <style>
-        body { font-family: Arial, sans-serif; }
+        body {
+            font-family: Arial, sans-serif;
+        }
+        canvas {
+            border: 1px solid black;
+            background-color: #f8f8f8;
+        }
+        .controls {
+            margin-bottom: 10px;
+        }
     </style>
 </head>
-<body class="bg-gray-100 flex justify-center items-center min-h-screen">
-    <div id="root" class="w-full max-w-4xl p-5"></div>
+<body>
+    <h2>Εφαρμογή Αρχιτεκτονικού Σχεδίου</h2>
+    <div class="controls">
+        <label>Πλάτος Καμβά: <input type="number" id="canvasWidth" value="800"></label>
+        <label>Ύψος Καμβά: <input type="number" id="canvasHeight" value="500"></label>
+        <button onclick="resizeCanvas()">Ορισμός</button>
+    </div>
 
-    <script type="text/babel">
-        const { useState } = React;
+    <canvas id="drawingCanvas" width="800" height="500"></canvas>
 
-        const ArchitecturalFacadePlanner = () => {
-            const [facade, setFacade] = useState(null);
-            const [objects, setObjects] = useState([]);
-            const [input, setInput] = useState("");
-            const [stage, setStage] = useState("dimensions");
+    <h3>Προσθήκη Αντικειμένου</h3>
+    <div class="controls">
+        <input type="text" id="objectName" placeholder="Όνομα αντικειμένου">
+        <input type="number" id="objectWidth" placeholder="Πλάτος">
+        <input type="number" id="objectHeight" placeholder="Ύψος">
+        <input type="number" id="posX" placeholder="Απόσταση από Χ">
+        <input type="number" id="posY" placeholder="Απόσταση από Ψ">
+        <button onclick="addObject()">Προσθήκη</button>
+    </div>
 
-            const setFacadeSize = () => {
-                const parts = input.split(",").map(n => parseFloat(n.trim()));
-                if (parts.length !== 2 || parts.some(isNaN)) {
-                    alert("Δώστε πλάτος και ύψος, π.χ. 10,8");
-                    return;
-                }
-                setFacade({ width: parts[0], height: parts[1] });
-                setObjects([]);
-                setStage("objects");
-                setInput("");
-            };
+    <h3>Αντικείμενα</h3>
+    <ul id="objectList"></ul>
 
-            const addObject = () => {
-                const parts = input.split(",").map(part => part.trim());
-                if (parts.length < 5) {
-                    alert("Δώστε: όνομα, πλάτος, ύψος, x, y");
-                    return;
-                }
-                const newObject = {
-                    id: Date.now(),
-                    name: parts[0],
-                    width: parseFloat(parts[1]),
-                    height: parseFloat(parts[2]),
-                    x: parseFloat(parts[3]),
-                    y: parseFloat(parts[4]),
-                    color: parts[5] || "rgba(0,0,255,0.3)"
-                };
-                if ([newObject.width, newObject.height, newObject.x, newObject.y].some(isNaN)) {
-                    alert("Λάθος αριθμοί!");
-                    return;
-                }
-                setObjects([...objects, newObject]);
-                setInput("");
-            };
+    <button onclick="clearCanvas()">Εκκαθάριση Σχεδίου</button>
 
-            return (
-                <div className="bg-white shadow-md rounded-lg p-6">
-                    <h1 className="text-xl font-bold mb-4 text-center">Σχεδιαστής Πρόσοψης</h1>
+    <script>
+        const canvas = document.getElementById("drawingCanvas");
+        const ctx = canvas.getContext("2d");
+        let objects = [];
 
-                    {stage === "dimensions" ? (
-                        <>
-                            <p className="text-gray-700 mb-2">Δώστε διαστάσεις (πλάτος, ύψος σε μέτρα)</p>
-                            <input 
-                                type="text" 
-                                value={input} 
-                                onChange={(e) => setInput(e.target.value)} 
-                                className="border px-2 py-1 w-full rounded mb-2"
-                                placeholder="π.χ. 10,8"
-                            />
-                            <button onClick={setFacadeSize} className="bg-blue-500 text-white px-4 py-2 rounded w-full">
-                                Ορισμός Πρόσοψης
-                            </button>
-                        </>
-                    ) : (
-                        <>
-                            <p className="text-gray-700 mb-2">Προσθήκη αντικειμένων: όνομα, πλάτος, ύψος, x, y</p>
-                            <input 
-                                type="text" 
-                                value={input} 
-                                onChange={(e) => setInput(e.target.value)} 
-                                className="border px-2 py-1 w-full rounded mb-2"
-                                placeholder="π.χ. πόρτα,1.2,2.1,1.5,0"
-                            />
-                            <button onClick={addObject} className="bg-green-500 text-white px-4 py-2 rounded w-full">
-                                Προσθήκη Αντικειμένου
-                            </button>
-                        </>
-                    )}
+        function resizeCanvas() {
+            canvas.width = document.getElementById("canvasWidth").value;
+            canvas.height = document.getElementById("canvasHeight").value;
+            redrawCanvas();
+        }
 
-                    {objects.length > 0 && (
-                        <div className="mt-4">
-                            <h3 className="text-lg font-semibold">Αντικείμενα</h3>
-                            {objects.map((obj) => (
-                                <div key={obj.id} className="flex justify-between items-center bg-gray-200 p-2 rounded mb-2">
-                                    <span>{obj.name} ({obj.width}x{obj.height}, {obj.x},{obj.y})</span>
-                                    <button 
-                                        onClick={() => setObjects(objects.filter(o => o.id !== obj.id))}
-                                        className="bg-red-500 text-white px-2 py-1 rounded"
-                                    >
-                                        Διαγραφή
-                                    </button>
-                                </div>
-                            ))}
-                        </div>
-                    )}
+        function addObject() {
+            let name = document.getElementById("objectName").value;
+            let width = parseInt(document.getElementById("objectWidth").value);
+            let height = parseInt(document.getElementById("objectHeight").value);
+            let x = parseInt(document.getElementById("posX").value);
+            let y = parseInt(document.getElementById("posY").value);
 
-                    {facade && (
-                        <div className="mt-6">
-                            <h3 className="text-lg font-semibold mb-2">Πρόσοψη</h3>
-                            <svg 
-                                viewBox={`0 0 ${facade.width} ${facade.height}`}
-                                className="w-full border border-gray-400"
-                                style={{ aspectRatio: facade.width / facade.height }}
-                            >
-                                <rect width={facade.width} height={facade.height} fill="none" stroke="black" strokeWidth="0.1" />
-                                {objects.map(obj => (
-                                    <rect 
-                                        key={obj.id}
-                                        x={obj.x} 
-                                        y={facade.height - obj.y - obj.height} 
-                                        width={obj.width} 
-                                        height={obj.height} 
-                                        fill={obj.color}
-                                        stroke="black"
-                                        strokeWidth="0.05"
-                                    />
-                                ))}
-                            </svg>
-                        </div>
-                    )}
-
-                    {facade && (
-                        <button 
-                            onClick={() => { setFacade(null); setObjects([]); setStage("dimensions"); }} 
-                            className="bg-red-500 text-white px-4 py-2 rounded w-full mt-4"
-                        >
-                            Επαναφορά
-                        </button>
-                    )}
-                </div>
-            );
-        };
-
-        document.addEventListener("DOMContentLoaded", function() {
-            const rootElement = document.getElementById("root");
-            if (rootElement) {
-                ReactDOM.createRoot(rootElement).render(<ArchitecturalFacadePlanner />);
-            } else {
-                console.error("Το στοιχείο #root δεν βρέθηκε!");
+            if (!name || isNaN(width) || isNaN(height) || isNaN(x) || isNaN(y)) {
+                alert("Συμπληρώστε όλα τα πεδία σωστά!");
+                return;
             }
-        });
+
+            let obj = { name, width, height, x, y };
+            objects.push(obj);
+            updateObjectList();
+            redrawCanvas();
+        }
+
+        function redrawCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.strokeStyle = "black";
+            ctx.lineWidth = 2;
+            ctx.strokeRect(0, 0, canvas.width, canvas.height);
+
+            objects.forEach(obj => {
+                ctx.fillStyle = "blue";
+                ctx.fillRect(obj.x, obj.y, obj.width, obj.height);
+                ctx.fillStyle = "white";
+                ctx.font = "12px Arial";
+                ctx.fillText(obj.name, obj.x + 5, obj.y + 15);
+            });
+        }
+
+        function updateObjectList() {
+            let list = document.getElementById("objectList");
+            list.innerHTML = "";
+            objects.forEach((obj, index) => {
+                let li = document.createElement("li");
+                li.innerHTML = `${obj.name} (Π: ${obj.width}, Υ: ${obj.height}, X: ${obj.x}, Y: ${obj.y}) 
+                <button onclick="deleteObject(${index})">Διαγραφή</button>`;
+                list.appendChild(li);
+            });
+        }
+
+        function deleteObject(index) {
+            objects.splice(index, 1);
+            updateObjectList();
+            redrawCanvas();
+        }
+
+        function clearCanvas() {
+            objects = [];
+            updateObjectList();
+            redrawCanvas();
+        }
     </script>
 </body>
 </html>
