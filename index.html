@@ -11,6 +11,8 @@
     <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
     
     <!-- TailwindCSS μέσω CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
     <script>
         tailwind.config = {
             theme: {
@@ -18,19 +20,13 @@
             }
         }
     </script>
-    <script src="https://cdn.tailwindcss.com"></script>
 
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-        }
-    </style>
 </head>
-<body class="bg-gray-100">
-    <div id="root" class="p-5"></div>
+<body class="bg-gray-100 flex justify-center items-center min-h-screen">
+    <div id="root" class="w-full max-w-3xl p-5"></div>
 
     <script type="text/babel">
-        const { useState, useMemo } = React;
+        const { useState } = React;
 
         const ProportionalArchitecturalFacadePlanner = () => {
             const [facadeDimensions, setFacadeDimensions] = useState(null);
@@ -69,8 +65,8 @@
             };
 
             return (
-                <div className="container mx-auto p-4 max-w-3xl bg-white shadow-md rounded-lg">
-                    <h1 className="text-xl font-bold mb-4">Αρχιτεκτονικός Σχεδιαστής Πρόσοψης</h1>
+                <div className="bg-white shadow-md rounded-lg p-6">
+                    <h1 className="text-xl font-bold mb-4 text-center">Αρχιτεκτονικός Σχεδιαστής Πρόσοψης</h1>
 
                     {stage === 'dimensions' ? (
                         <>
@@ -138,7 +134,12 @@
         };
 
         document.addEventListener("DOMContentLoaded", function() {
-            ReactDOM.createRoot(document.getElementById("root")).render(<ProportionalArchitecturalFacadePlanner />);
+            const rootElement = document.getElementById("root");
+            if (rootElement) {
+                ReactDOM.createRoot(rootElement).render(<ProportionalArchitecturalFacadePlanner />);
+            } else {
+                console.error("Το στοιχείο #root δεν βρέθηκε!");
+            }
         });
     </script>
 </body>
