@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Αρχιτεκτονικός Σχεδιαστής Πρόσοψης</title>
+    <title>Σχεδιαστής Πρόσοψης</title>
     
     <!-- React & Babel -->
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
@@ -13,92 +13,86 @@
     <!-- TailwindCSS μέσω CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {}
-            }
-        }
-    </script>
-
+    <style>
+        body { font-family: Arial, sans-serif; }
+    </style>
 </head>
 <body class="bg-gray-100 flex justify-center items-center min-h-screen">
-    <div id="root" class="w-full max-w-3xl p-5"></div>
+    <div id="root" class="w-full max-w-4xl p-5"></div>
 
     <script type="text/babel">
         const { useState } = React;
 
-        const ProportionalArchitecturalFacadePlanner = () => {
-            const [facadeDimensions, setFacadeDimensions] = useState(null);
+        const ArchitecturalFacadePlanner = () => {
+            const [facade, setFacade] = useState(null);
             const [objects, setObjects] = useState([]);
-            const [inputText, setInputText] = useState('');
-            const [stage, setStage] = useState('dimensions');
+            const [input, setInput] = useState("");
+            const [stage, setStage] = useState("dimensions");
 
             const setFacadeSize = () => {
-                const parts = inputText.split(',').map(part => parseFloat(part.trim()));
-                if (parts.length !== 2 || isNaN(parts[0]) || isNaN(parts[1])) {
-                    alert('Παρακαλώ εισάγετε 2 αριθμούς: πλάτος, ύψος');
+                const parts = input.split(",").map(n => parseFloat(n.trim()));
+                if (parts.length !== 2 || parts.some(isNaN)) {
+                    alert("Δώστε πλάτος και ύψος, π.χ. 10,8");
                     return;
                 }
-                setFacadeDimensions({ width: parts[0], height: parts[1] });
-                setStage('objects');
-                setInputText('');
+                setFacade({ width: parts[0], height: parts[1] });
+                setObjects([]);
+                setStage("objects");
+                setInput("");
             };
 
             const addObject = () => {
-                const parts = inputText.split(',').map(part => part.trim());
+                const parts = input.split(",").map(part => part.trim());
                 if (parts.length < 5) {
-                    alert('Παρακαλώ εισάγετε: όνομα, πλάτος, ύψος, x, y');
+                    alert("Δώστε: όνομα, πλάτος, ύψος, x, y");
                     return;
                 }
                 const newObject = {
-                    id: Date.now().toString(),
+                    id: Date.now(),
                     name: parts[0],
                     width: parseFloat(parts[1]),
                     height: parseFloat(parts[2]),
                     x: parseFloat(parts[3]),
                     y: parseFloat(parts[4]),
-                    color: parts[5] || 'rgba(0,0,255,0.3)'
+                    color: parts[5] || "rgba(0,0,255,0.3)"
                 };
+                if ([newObject.width, newObject.height, newObject.x, newObject.y].some(isNaN)) {
+                    alert("Λάθος αριθμοί!");
+                    return;
+                }
                 setObjects([...objects, newObject]);
-                setInputText('');
+                setInput("");
             };
 
             return (
                 <div className="bg-white shadow-md rounded-lg p-6">
-                    <h1 className="text-xl font-bold mb-4 text-center">Αρχιτεκτονικός Σχεδιαστής Πρόσοψης</h1>
+                    <h1 className="text-xl font-bold mb-4 text-center">Σχεδιαστής Πρόσοψης</h1>
 
-                    {stage === 'dimensions' ? (
+                    {stage === "dimensions" ? (
                         <>
-                            <p className="text-gray-700 mb-2">Εισάγετε τις διαστάσεις της πρόσοψης (πλάτος, ύψος)</p>
+                            <p className="text-gray-700 mb-2">Δώστε διαστάσεις (πλάτος, ύψος σε μέτρα)</p>
                             <input 
                                 type="text" 
-                                value={inputText} 
-                                onChange={(e) => setInputText(e.target.value)} 
+                                value={input} 
+                                onChange={(e) => setInput(e.target.value)} 
                                 className="border px-2 py-1 w-full rounded mb-2"
                                 placeholder="π.χ. 10,8"
                             />
-                            <button 
-                                onClick={setFacadeSize} 
-                                className="bg-blue-500 text-white px-4 py-2 rounded w-full"
-                            >
-                                Ορισμός Διαστάσεων
+                            <button onClick={setFacadeSize} className="bg-blue-500 text-white px-4 py-2 rounded w-full">
+                                Ορισμός Πρόσοψης
                             </button>
                         </>
                     ) : (
                         <>
-                            <p className="text-gray-700 mb-2">Προσθέστε αντικείμενα: όνομα, πλάτος, ύψος, x, y</p>
+                            <p className="text-gray-700 mb-2">Προσθήκη αντικειμένων: όνομα, πλάτος, ύψος, x, y</p>
                             <input 
                                 type="text" 
-                                value={inputText} 
-                                onChange={(e) => setInputText(e.target.value)} 
+                                value={input} 
+                                onChange={(e) => setInput(e.target.value)} 
                                 className="border px-2 py-1 w-full rounded mb-2"
                                 placeholder="π.χ. πόρτα,1.2,2.1,1.5,0"
                             />
-                            <button 
-                                onClick={addObject} 
-                                className="bg-green-500 text-white px-4 py-2 rounded w-full"
-                            >
+                            <button onClick={addObject} className="bg-green-500 text-white px-4 py-2 rounded w-full">
                                 Προσθήκη Αντικειμένου
                             </button>
                         </>
@@ -121,9 +115,34 @@
                         </div>
                     )}
 
-                    {facadeDimensions && (
+                    {facade && (
+                        <div className="mt-6">
+                            <h3 className="text-lg font-semibold mb-2">Πρόσοψη</h3>
+                            <svg 
+                                viewBox={`0 0 ${facade.width} ${facade.height}`}
+                                className="w-full border border-gray-400"
+                                style={{ aspectRatio: facade.width / facade.height }}
+                            >
+                                <rect width={facade.width} height={facade.height} fill="none" stroke="black" strokeWidth="0.1" />
+                                {objects.map(obj => (
+                                    <rect 
+                                        key={obj.id}
+                                        x={obj.x} 
+                                        y={facade.height - obj.y - obj.height} 
+                                        width={obj.width} 
+                                        height={obj.height} 
+                                        fill={obj.color}
+                                        stroke="black"
+                                        strokeWidth="0.05"
+                                    />
+                                ))}
+                            </svg>
+                        </div>
+                    )}
+
+                    {facade && (
                         <button 
-                            onClick={() => { setFacadeDimensions(null); setObjects([]); setStage('dimensions'); }} 
+                            onClick={() => { setFacade(null); setObjects([]); setStage("dimensions"); }} 
                             className="bg-red-500 text-white px-4 py-2 rounded w-full mt-4"
                         >
                             Επαναφορά
@@ -136,7 +155,7 @@
         document.addEventListener("DOMContentLoaded", function() {
             const rootElement = document.getElementById("root");
             if (rootElement) {
-                ReactDOM.createRoot(rootElement).render(<ProportionalArchitecturalFacadePlanner />);
+                ReactDOM.createRoot(rootElement).render(<ArchitecturalFacadePlanner />);
             } else {
                 console.error("Το στοιχείο #root δεν βρέθηκε!");
             }
