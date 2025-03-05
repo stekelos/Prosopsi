@@ -1,0 +1,316 @@
+import React, { useState, useMemo } from 'react';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Trash2, Plus, ArrowRight } from 'lucide-react';
+
+// Διεπαφή για τις διαστάσεις πρόσοψης
+interface FacadeDimensions {
+  width: number;
+  height: number;
+}
+
+// Διεπαφή για το αντικείμενο πρόσοψης
+interface FacadeObject {
+  id: string;
+  name: string;
+  width: number;
+  height: number;
+  x: number;
+  y: number;
+  color?: string;
+}
+
+const ProportionalArchitecturalFacadePlanner: React.FC = () => {
+  // Κατάσταση για τις διαστάσεις της πρόσοψης
+  const [facadeDimensions, setFacadeDimensions] = useState<FacadeDimensions | null>(null);
+  
+  // Κατάσταση για τα αντικείμενα της πρόσοψης
+  const [objects, setObjects] = useState<FacadeObject[]>([]);
+  
+  // Κατάσταση για το προσωρινό input
+  const [inputText, setInputText] = useState<string>('');
+
+  // Στάδιο της εφαρμογής
+  const [stage, setStage] = useState<'dimensions' | 'objects'>('dimensions');
+
+  // Υπολογισμός κλίμακας και αναλογιών
+  const svgViewBox = useMemo(() => {
+    if (!facadeDimensions) return { viewBox: '0 0 10 10', scale: 1 };
+    
+    // Υπολογισμός της καλύτερης κλίμακας για να διατηρηθούν οι αναλογίες
+    const aspectRatio = facadeDimensions.width / facadeDimensions.height;
+    
+    // Επιλογή κατάλληλης προβολής
+    if (aspectRatio > 1) {
+      // Πλατιά πρόσοψη
+      const scaledHeight = 10 / aspectRatio;
+      return {
+        viewBox: `0 0 10 ${scaledHeight}`,
+        scale: 10 / facadeDimensions.width
+      };
+    } else {
+      // Ψηλή πρόσοψη
+      const scaledWidth = 10 * aspectRatio;
+      return {
+        viewBox: `0 0 ${scaledWidth} 10`,
+        scale: 10 / facadeDimensions.height
+      };
+    }
+  }, [facadeDimensions]);
+
+  // Ορισμός διαστάσεων πρόσοψης
+  const setFacadeSize = () => {
+    const parts = inputText.split(',').map(part => parseFloat(part.trim()));
+    
+    if (parts.length !== 2 || isNaN(parts[0]) || isNaN(parts[1])) {
+      alert('Παρακαλώ εισάγετε 2 τιμές: πλάτος, ύψος');
+      return;
+    }
+
+    setFacadeDimensions({
+      width: parts[0],
+      height: parts[1]
+    });
+    setStage('objects');
+    setInputText('');
+  };
+
+  // Προσθήκη νέου αντικειμένου
+  const addObject = () => {
+    // Διαχωρισμός του input σε τμήματα
+    const parts = inputText.split(',').map(part => part.trim());
+    
+    // Έλεγχος εγκυρότητας εισόδου
+    if (parts.length < 5) {
+      alert('Παρακαλώ εισάγετε τουλάχιστον: όνομα, πλάτος, ύψος, x, y');
+      return;
+    }
+
+    // Έλεγχος ορίων
+    if (!facadeDimensions) {
+      alert('Πρώτα πρέπει να ορίσετε τις διαστάσεις της πρόσοψης');
+      return;
+    }
+
+    try {
+      const newObject: FacadeObject = {
+        id: Date.now().toString(), // Μοναδικό αναγνωριστικό
+        name: parts[0],
+        width: parseFloat(parts[1]),
+        height: parseFloat(parts[2]),
+        x: parseFloat(parts[3]),
+        y: parseFloat(parts[4]),
+        color: parts[5] || 'rgba(0,0,255,0.3)' // Προαιρετικό χρώμα
+      };
+
+      // Έλεγχος ορίων τοποθέτησης
+      if (
+        newObject.x < 0 || 
+        newObject.y < 0 || 
+        newObject.x + newObject.width > facadeDimensions.width ||
+        newObject.y + newObject.height > facadeDimensions.height
+      ) {
+        alert('Το αντικείμενο βρίσκεται εκτός των ορίων της πρόσοψης');
+        return;
+      }
+
+      // Προσθήκη του νέου αντικειμένου
+      setObjects([...objects, newObject]);
+      
+      // Καθαρισμός του input
+      setInputText('');
+    } catch (error) {
+      alert('Παρακαλώ εισάγετε έγκυρους αριθμούς');
+    }
+  };
+
+  // Διαγραφή αντικειμένου
+  const removeObject = (idToRemove: string) => {
+    setObjects(objects.filter(obj => obj.id !== idToRemove));
+  };
+
+  // Επανεκκίνηση σχεδιασμού
+  const resetDesign = () => {
+    setFacadeDimensions(null);
+    setObjects([]);
+    setStage('dimensions');
+  };
+
+  // Απεικόνιση πρόσοψης
+  const renderFacade = () => {
+    if (!facadeDimensions) return null;
+
+    return (
+      <svg 
+        viewBox={svgViewBox.viewBox}
+        preserveAspectRatio="xMidYMid meet"
+        className="w-full h-96 border-2 border-gray-300"
+      >
+        {/* Βασικό περίγραμμα πρόσοψης */}
+        <rect 
+          x="0" 
+          y="0" 
+          width={facadeDimensions.width * svgViewBox.scale} 
+          height={facadeDimensions.height * svgViewBox.scale} 
+          fill="none" 
+          stroke="gray" 
+          strokeWidth="0.1" 
+        />
+
+        {/* Απεικόνιση κάθε αντικειμένου */}
+        {objects.map((obj) => (
+          <g key={obj.id}>
+            <rect 
+              x={obj.x * svgViewBox.scale} 
+              y={(facadeDimensions.height - (obj.y + obj.height)) * svgViewBox.scale} 
+              width={obj.width * svgViewBox.scale} 
+              height={obj.height * svgViewBox.scale} 
+              fill={obj.color} 
+              stroke="blue"
+              strokeWidth="0.05"
+            />
+            <text 
+              x={(obj.x + obj.width / 2) * svgViewBox.scale} 
+              y={(facadeDimensions.height - obj.y) * svgViewBox.scale + 0.3} 
+              fontSize={`${0.3 * svgViewBox.scale}`} 
+              textAnchor="middle"
+              fill="rgba(0,0,0,0.7)"
+              fontStyle="italic"
+            >
+              {obj.name}
+            </text>
+          </g>
+        ))}
+
+        {/* Προσθήκη κανάβου για καλύτερη αναφορά */}
+        {[...Array(Math.ceil(facadeDimensions.width))].map((_, x) => (
+          <line 
+            key={`vertical-${x}`}
+            x1={x * svgViewBox.scale} 
+            y1="0" 
+            x2={x * svgViewBox.scale} 
+            y2={facadeDimensions.height * svgViewBox.scale} 
+            stroke="#e0e0e0" 
+            strokeWidth="0.05"
+            strokeDasharray="0.2,0.2"
+          />
+        ))}
+        {[...Array(Math.ceil(facadeDimensions.height))].map((_, y) => (
+          <line 
+            key={`horizontal-${y}`}
+            x1="0" 
+            y1={y * svgViewBox.scale} 
+            x2={facadeDimensions.width * svgViewBox.scale} 
+            y2={y * svgViewBox.scale} 
+            stroke="#e0e0e0" 
+            strokeWidth="0.05"
+            strokeDasharray="0.2,0.2"
+          />
+        ))}
+      </svg>
+    );
+  };
+
+  return (
+    <Card className="w-full max-w-4xl mx-auto">
+      <CardHeader>
+        <CardTitle>Αναλογικός Αρχιτεκτονικός Σχεδιαστής Πρόσοψης</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="mb-4">
+          {stage === 'dimensions' ? (
+            <>
+              <p className="text-sm text-gray-600 mb-2">
+                Εισάγετε τις διαστάσεις της πρόσοψης:
+              </p>
+              <p className="text-sm text-gray-600 mb-4">
+                Μορφή: πλάτος,ύψος (σε μέτρα)
+              </p>
+              <div className="flex space-x-2">
+                <Input 
+                  type="text"
+                  value={inputText}
+                  onChange={(e) => setInputText(e.target.value)}
+                  placeholder="Πχ. 10,8 (πλάτος 10m, ύψος 8m)"
+                  className="flex-grow"
+                />
+                <Button onClick={setFacadeSize}>
+                  <ArrowRight className="mr-2" /> Επόμενο
+                </Button>
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="text-sm text-gray-600 mb-2">
+                Το σημείο 0,0 είναι η κάτω αριστερή γωνία της πρόσοψης
+              </p>
+              <p className="text-sm text-gray-600 mb-4">
+                Εισάγετε αντικείμενα με τη μορφή: όνομα,πλάτος,ύψος,x,y,χρώμα(προαιρετικό)
+              </p>
+              <p className="text-sm text-gray-600 mb-4">
+                Παράδειγμα: πόρτα,1.2,2.1,1.5,0,rgba(255,0,0,0.3)
+              </p>
+              <div className="flex space-x-2">
+                <Input 
+                  type="text"
+                  value={inputText}
+                  onChange={(e) => setInputText(e.target.value)}
+                  placeholder="Εισάγετε αντικείμενο"
+                  className="flex-grow"
+                />
+                <Button onClick={addObject}>
+                  <Plus className="mr-2" /> Προσθήκη
+                </Button>
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Λίστα προστιθέμενων αντικειμένων */}
+        {stage === 'objects' && (
+          <div className="mb-4">
+            <h3 className="text-lg font-semibold mb-2">Αντικείμενα</h3>
+            {objects.map((obj) => (
+              <div 
+                key={obj.id} 
+                className="flex justify-between items-center bg-gray-100 p-2 mb-2 rounded"
+              >
+                <span>
+                  {obj.name} (Πλάτος: {obj.width}m, Ύψος: {obj.height}m, 
+                  X: {obj.x}m, Y: {obj.y}m)
+                </span>
+                <Button 
+                  variant="destructive" 
+                  size="icon" 
+                  onClick={() => removeObject(obj.id)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Απεικόνιση πρόσοψης */}
+        {facadeDimensions && (
+          <div>
+            <h3 className="text-lg font-semibold mb-2">Απεικόνιση Πρόσοψης</h3>
+            {renderFacade()}
+          </div>
+        )}
+
+        {/* Κουμπί επανεκκίνησης */}
+        {facadeDimensions && (
+          <div className="mt-4">
+            <Button variant="destructive" onClick={resetDesign}>
+              Επανεκκίνηση Σχεδιασμού
+            </Button>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
+export default ProportionalArchitecturalFacadePlanner;
