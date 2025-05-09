@@ -319,6 +319,8 @@
         });
 
         function createTrainingProgram(initialDistance, weeksNumber, trainingDays, raceDay) {
+            console.log('Creating training program with:', initialDistance, weeksNumber, trainingDays, raceDay);
+
             // Ταξινόμηση των ημερών προπόνησης
             trainingDays.sort((a, b) => a - b);
 
@@ -336,6 +338,8 @@
                 weeklyDistances[weeksNumber-2] = Math.round(weeklyDistances[weeksNumber-2] * 0.9 * 10) / 10;
             }
 
+            console.log('Weekly distances:', weeklyDistances);
+
             // Εύρεση της ημέρας για το long run (συνήθως μια κύρια ημέρα, π.χ. Σάββατο αν υπάρχει)
             let longRunDayIndex;
             if (trainingDays.includes(6)) { // Αν έχουμε Σάββατο, το χρησιμοποιούμε για long run
@@ -345,6 +349,8 @@
             } else { // Αλλιώς, χρησιμοποιούμε την τελευταία ημέρα προπόνησης
                 longRunDayIndex = trainingDays.length - 1;
             }
+
+            console.log('Long run day index:', longRunDayIndex);
 
             // Συναρτήσεις υπολογισμού λεπτομερειών προπόνησης
             function getRepetitionDetails(weeklyDistance, maxWeeks) {
@@ -376,6 +382,8 @@
                 // Υπολογισμός της απόστασης που θα μοιραστεί στις υπόλοιπες μέρες
                 const remainingDistance = Math.round((weeklyDistance - longRun) * 10) / 10;
                 const dailyDistance = Math.round(remainingDistance / (trainingDays.length - 1) * 10) / 10;
+
+                console.log(`Week `${{week + 1}: Weekly Distance =}$`{weeklyDistance} km, Long Run = `${{longRun} km, Daily Distance =}$`{dailyDistance} km`);
 
                 // Προσθήκη εβδομάδας
                 programHTML += `
