@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Παραμετροποιήσιμο Πρόγραμμα Προπόνησης</title>
+    <title>Παραμετροποιήσιμο Πρόγραμμα Προετοιμασίας Μαραθωνίου</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -154,11 +154,11 @@
     </style>
 </head>
 <body>
-    <h1>Παραμετροποιήσιμο Πρόγραμμα Προπόνησης</h1>
+    <h1>Παραμετροποιήσιμο Πρόγραμμα Προετοιμασίας Μαραθωνίου</h1>
 
     <div class="info-section">
         <h2>Βασικές Πληροφορίες</h2>
-        <p>Δημιουργήστε το προσωπικό σας πρόγραμμα προπόνησης επιλέγοντας τις παραμέτρους που σας ταιριάζουν. Η εβδομαδιαία απόσταση αυξάνεται προοδευτικά κατά 10% κάθε εβδομάδα, με την προτελευταία εβδομάδα να είναι μειωμένη κατά 10% για να ξεκουραστείτε πριν από την ημέρα του αγώνα.</p>
+        <p>Δημιουργήστε το προσωπικό σας πρόγραμμα προετοιμασίας για μαραθώνιο επιλέγοντας τις παραμέτρους που σας ταιριάζουν. Η εβδομαδιαία απόσταση αυξάνεται προοδευτικά κατά 10% κάθε εβδομάδα, με την τελευταία εβδομάδα να είναι εβδομάδα "tapering" για να είστε ξεκούραστοι την ημέρα του αγώνα.</p>
         <p>Το πρόγραμμα περιλαμβάνει:</p>
         <ul>
             <li><strong>Easy Runs:</strong> Τρέξιμο σε άνετο ρυθμό για αύξηση της αντοχής</li>
@@ -179,12 +179,12 @@
             <input type="number" id="weeks-number" name="weeks-number" min="4" max="24" value="10">
         </div>
         <div class="form-group">
-            <label for="training-days-count">Αριθμός Ημερών Προπόνησης (ανά εβδομάδα):</label>
-            <input type="number" id="training-days-count" name="training-days-count" min="3" max="6" value="5">
-        </div>
-        <div class="form-group">
-            <label>Επιλογή Ημερών Προπόνησης:</label>
+            <label>Ημέρες Προπόνησης (επιλέξτε 5 ημέρες):</label>
             <div class="day-selection">
+                <div class="day-checkbox">
+                    <input type="checkbox" id="day-0" name="training-days" value="0">
+                    <label for="day-0">Κυριακή</label>
+                </div>
                 <div class="day-checkbox">
                     <input type="checkbox" id="day-1" name="training-days" value="1" checked>
                     <label for="day-1">Δευτέρα</label>
@@ -209,23 +209,19 @@
                     <input type="checkbox" id="day-6" name="training-days" value="6">
                     <label for="day-6">Σάββατο</label>
                 </div>
-                <div class="day-checkbox">
-                    <input type="checkbox" id="day-0" name="training-days" value="0">
-                    <label for="day-0">Κυριακή</label>
-                </div>
             </div>
             <div id="days-error" class="error"></div>
         </div>
         <div class="form-group">
-            <label for="race-day">Ημέρα Αγώνα (τελευταία μέρα του προγράμματος):</label>
+            <label for="race-day">Ημέρα Αγώνα:</label>
             <select id="race-day" name="race-day">
+                <option value="0">Κυριακή</option>
                 <option value="1">Δευτέρα</option>
                 <option value="2">Τρίτη</option>
                 <option value="3">Τετάρτη</option>
                 <option value="4">Πέμπτη</option>
                 <option value="5">Παρασκευή</option>
                 <option value="6">Σάββατο</option>
-                <option value="0" selected>Κυριακή</option>
             </select>
         </div>
         <button type="submit">Δημιουργία Προγράμματος</button>
@@ -237,53 +233,41 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Ονόματα ημερών - ΣΗΜΑΝΤΙΚΟ: Αρχίζοντας από Δευτέρα (index 1)
+            // Προεπιλεγμένες ημέρες προπόνησης
             const dayNames = ['Κυριακή', 'Δευτέρα', 'Τρίτη', 'Τετάρτη', 'Πέμπτη', 'Παρασκευή', 'Σάββατο'];
 
-            // Περιορισμός στην επιλογή ημερών βάσει του επιλεγμένου αριθμού
-            const trainingDaysCountInput = document.getElementById('training-days-count');
+            // Περιορισμός στην επιλογή ακριβώς 5 ημερών
             const dayCheckboxes = document.querySelectorAll('input[name="training-days"]');
-            const errorDiv = document.getElementById('days-error');
-
-            // Ενημέρωση των ημερών προπόνησης όταν αλλάζει ο αριθμός τους
-            trainingDaysCountInput.addEventListener('change', function() {
-                const desiredCount = parseInt(this.value);
-                updateDaysValidation(desiredCount);
-            });
-
-            // Έλεγχος επιλεγμένων ημερών κάθε φορά που αλλάζει μια επιλογή
             dayCheckboxes.forEach(checkbox => {
                 checkbox.addEventListener('change', function() {
-                    const desiredCount = parseInt(trainingDaysCountInput.value);
                     const checkedDays = document.querySelectorAll('input[name="training-days"]:checked');
+                    const errorDiv = document.getElementById('days-error');
 
-                    if (checkedDays.length > desiredCount) {
+                    if (checkedDays.length > 5) {
                         this.checked = false;
-                        errorDiv.textContent = `Επιλέξτε ακριβώς ${desiredCount} ημέρες προπόνησης`;
+                        errorDiv.textContent = 'Επιλέξτε ακριβώς 5 ημέρες προπόνησης';
                     } else {
-                        errorDiv.textContent = checkedDays.length < desiredCount ?
-                            `Επιλέξτε ακριβώς ${desiredCount} ημέρες προπόνησης` : '';
+                        errorDiv.textContent = checkedDays.length < 5 ? 'Επιλέξτε ακριβώς 5 ημέρες προπόνησης' : '';
+                    }
+
+                    // Αποκλεισμός της ημέρας αγώνα από τις ημέρες προπόνησης
+                    const raceDay = document.getElementById('race-day').value;
+                    if (this.value === raceDay && this.checked) {
+                        errorDiv.textContent = 'Η ημέρα αγώνα δεν μπορεί να είναι ημέρα προπόνησης';
                     }
                 });
             });
 
-            // Ενημέρωση εγκυρότητας ημερών με βάση τον αριθμό
-            function updateDaysValidation(desiredCount) {
-                const checkedDays = document.querySelectorAll('input[name="training-days"]:checked');
+            // Ενημέρωση των ημερών προπόνησης όταν αλλάζει η ημέρα αγώνα
+            document.getElementById('race-day').addEventListener('change', function() {
+                const raceDay = this.value;
+                const raceDayCheckbox = document.getElementById(`day-${raceDay}`);
 
-                // Αν έχουμε περισσότερες επιλεγμένες ημέρες από το επιθυμητό
-                if (checkedDays.length > desiredCount) {
-                    // Αφαιρούμε τις πλεονάζουσες επιλογές από το τέλος
-                    for (let i = checkedDays.length - 1; i >= desiredCount; i--) {
-                        checkedDays[i].checked = false;
-                    }
+                if (raceDayCheckbox.checked) {
+                    raceDayCheckbox.checked = false;
+                    document.getElementById('days-error').textContent = 'Η ημέρα αγώνα έχει αφαιρεθεί από τις ημέρες προπόνησης. Επιλέξτε άλλη ημέρα αν χρειάζεστε 5 συνολικά.';
                 }
-
-                // Εμφάνιση κατάλληλου μηνύματος εάν χρειάζεται
-                const newCheckedCount = document.querySelectorAll('input[name="training-days"]:checked').length;
-                errorDiv.textContent = newCheckedCount < desiredCount ?
-                    `Επιλέξτε ακριβώς ${desiredCount} ημέρες προπόνησης` : '';
-            }
+            });
 
             // Φόρμα υποβολής για δημιουργία προγράμματος
             document.getElementById('program-form').addEventListener('submit', function(e) {
@@ -291,7 +275,6 @@
 
                 const initialDistance = parseFloat(document.getElementById('initial-distance').value);
                 const weeksNumber = parseInt(document.getElementById('weeks-number').value);
-                const desiredDaysCount = parseInt(document.getElementById('training-days-count').value);
                 const raceDay = parseInt(document.getElementById('race-day').value);
 
                 // Συλλογή επιλεγμένων ημερών προπόνησης
@@ -300,27 +283,28 @@
                     selectedDays.push(parseInt(checkbox.value));
                 });
 
-                // Έλεγχος για τον σωστό αριθμό ημερών προπόνησης
-                if (selectedDays.length !== desiredDaysCount) {
-                    errorDiv.textContent = `Επιλέξτε ακριβώς ${desiredDaysCount} ημέρες προπόνησης`;
+                // Έλεγχος για ακριβώς 5 ημέρες προπόνησης
+                if (selectedDays.length !== 5) {
+                    document.getElementById('days-error').textContent = 'Επιλέξτε ακριβώς 5 ημέρες προπόνησης';
                     return;
                 }
 
-                // Δημιουργία προγράμματος προπόνησης
-                createTrainingProgram(initialDistance, weeksNumber, selectedDays, raceDay);
+                // Έλεγχος ότι η ημέρα αγώνα δεν είναι ημέρα προπόνησης
+                if (selectedDays.includes(raceDay)) {
+                    document.getElementById('days-error').textContent = 'Η ημέρα αγώνα δεν μπορεί να είναι ημέρα προπόνησης';
+                    return;
+                }
+
+                // Δημιουργία προγράμματος μαραθωνίου
+                createMarathonProgram(initialDistance, weeksNumber, selectedDays, raceDay);
             });
 
             // Αρχική δημιουργία προγράμματος με τις προεπιλεγμένες τιμές
-            const initialSelectedDays = [1, 2, 3, 4, 5]; // Δευτέρα έως Παρασκευή
-            createTrainingProgram(30, 10, initialSelectedDays, 0); // Προεπιλογή: Κυριακή αγώνα
-
-            // Αρχικοποίηση ελέγχου ημερών προπόνησης
-            updateDaysValidation(parseInt(trainingDaysCountInput.value));
+            const initialSelectedDays = [1, 2, 3, 4, 5]; // Δευτέρα, Τρίτη, Τετάρτη, Πέμπτη, Παρασκευή
+            createMarathonProgram(30, 10, initialSelectedDays, 6); // Προεπιλογή: Σάββατο αγώνα
         });
 
-        function createTrainingProgram(initialDistance, weeksNumber, trainingDays, raceDay) {
-            console.log('Creating training program with:', initialDistance, weeksNumber, trainingDays, raceDay);
-
+        function createMarathonProgram(initialDistance, weeksNumber, trainingDays, raceDay) {
             // Ταξινόμηση των ημερών προπόνησης
             trainingDays.sort((a, b) => a - b);
 
@@ -332,25 +316,21 @@
             for (let i = 1; i < weeksNumber; i++) {
                 weeklyDistances.push(Math.round(weeklyDistances[i-1] * 1.1 * 10) / 10);
             }
+            weeklyDistances[weeksNumber-1] = Math.round(weeklyDistances[weeksNumber-2] * 0.5 * 10) / 10;
 
-            // Μείωση της προτελευταίας εβδομάδας κατά 10%
-            if (weeksNumber > 1) {
-                weeklyDistances[weeksNumber-2] = Math.round(weeklyDistances[weeksNumber-2] * 0.9 * 10) / 10;
-            }
-
-            console.log('Weekly distances:', weeklyDistances);
-
-            // Εύρεση της ημέρας για το long run (συνήθως μια κύρια ημέρα, π.χ. Σάββατο αν υπάρχει)
+            // Εύρεση της ημέρας για το long run (συνήθως η ημέρα πριν την ημέρα του αγώνα στην εβδομάδα)
             let longRunDayIndex;
-            if (trainingDays.includes(6)) { // Αν έχουμε Σάββατο, το χρησιμοποιούμε για long run
-                longRunDayIndex = trainingDays.indexOf(6);
-            } else if (trainingDays.includes(0)) { // Αν έχουμε Κυριακή
-                longRunDayIndex = trainingDays.indexOf(0);
-            } else { // Αλλιώς, χρησιμοποιούμε την τελευταία ημέρα προπόνησης
-                longRunDayIndex = trainingDays.length - 1;
+            // Βρίσκουμε την τελευταία μέρα προπόνησης πριν την ημέρα αγώνα
+            for (let i = trainingDays.length - 1; i >= 0; i--) {
+                if ((trainingDays[i] < raceDay) || (raceDay === 0 && trainingDays[i] === 6)) {
+                    longRunDayIndex = i;
+                    break;
+                }
             }
-
-            console.log('Long run day index:', longRunDayIndex);
+            // Αν δεν βρέθηκε, παίρνουμε την πρώτη μέρα μετά την ημέρα αγώνα
+            if (longRunDayIndex === undefined) {
+                longRunDayIndex = 0;
+            }
 
             // Συναρτήσεις υπολογισμού λεπτομερειών προπόνησης
             function getRepetitionDetails(weeklyDistance, maxWeeks) {
@@ -378,12 +358,8 @@
             for (let week = 0; week < weeksNumber; week++) {
                 const weeklyDistance = weeklyDistances[week];
                 const longRun = Math.round(weeklyDistance * 0.27 * 10) / 10;
-
-                // Υπολογισμός της απόστασης που θα μοιραστεί στις υπόλοιπες μέρες
                 const remainingDistance = Math.round((weeklyDistance - longRun) * 10) / 10;
-                const dailyDistance = Math.round(remainingDistance / (trainingDays.length - 1) * 10) / 10;
-
-                console.log(`Week `${{week + 1}: Weekly Distance =}$`{weeklyDistance} km, Long Run = `${{longRun} km, Daily Distance =}$`{dailyDistance} km`);
+                const dailyDistance = Math.round(remainingDistance / 4 * 10) / 10;
 
                 // Προσθήκη εβδομάδας
                 programHTML += `
@@ -393,19 +369,18 @@
                         </div>
                 `;
 
-                // Προσθήκη ημερών της εβδομάδας
+                // Προσθήκη ημερών προπόνησης
                 for (let dayIndex = 0; dayIndex < 7; dayIndex++) {
-                    const dayNum = (dayIndex + 1) % 7; // Μετατροπή από 0-6 σε 1-0 (Δευ-Κυρ)
-                    const isTrainingDay = trainingDays.includes(dayNum);
-                    const isRaceDay = (week === weeksNumber-1 && dayNum === raceDay);
-                    const isLongRunDay = isTrainingDay && (trainingDays.indexOf(dayNum) === longRunDayIndex);
+                    const isTrainingDay = trainingDays.includes(dayIndex);
+                    const isRaceDay = (week === weeksNumber-1) && (dayIndex === raceDay);
+                    const isLongRunDay = isTrainingDay && (trainingDays.indexOf(dayIndex) === longRunDayIndex);
 
                     if (isRaceDay) {
                         // Ημέρα αγώνα (μόνο την τελευταία εβδομάδα)
                         programHTML += `
                             <div class="training-day">
-                                <div class="day">${dayNames[dayNum]}:</div>
-                                <div class="workout race-day">ΗΜΕΡΑ ΑΓΩΝΑ - ΑΓΩΝΑΣ 42.195 km</div>
+                                <div class="day">${dayNames[dayIndex]}:</div>
+                                <div class="workout race-day">ΗΜΕΡΑ ΑΓΩΝΑ - ΜΑΡΑΘΩΝΙΟΣ 42.195 km</div>
                             </div>
                         `;
                     } else if (isTrainingDay) {
@@ -414,19 +389,19 @@
                             // Μεγάλη διαδρομή
                             programHTML += `
                                 <div class="training-day">
-                                    <div class="day">${dayNames[dayNum]}:</div>
+                                    <div class="day">${dayNames[dayIndex]}:</div>
                                     <div class="workout long-run">Long Run - ${longRun} km</div>
                                 </div>
                             `;
                         } else {
                             // Άλλος τύπος προπόνησης ανάλογα με την εβδομάδα
-                            const workoutIndex = trainingDays.indexOf(dayNum);
+                            const workoutIndex = trainingDays.indexOf(dayIndex);
 
                             if (week < 2) {
                                 // Πρώτες 2 εβδομάδες: Μόνο εύκολα τρεξίματα
                                 programHTML += `
                                     <div class="training-day">
-                                        <div class="day">${dayNames[dayNum]}:</div>
+                                        <div class="day">${dayNames[dayIndex]}:</div>
                                         <div class="workout">Easy Run - ${dailyDistance} km</div>
                                     </div>
                                 `;
@@ -436,22 +411,22 @@
                                     const repDetails = getRepetitionDetails(weeklyDistance, weeksNumber);
                                     programHTML += `
                                         <div class="training-day">
-                                            <div class="day">${dayNames[dayNum]}:</div>
+                                            <div class="day">${dayNames[dayIndex]}:</div>
                                             <div class="workout intensity-workout">Repetition - 2.0 km ζέσταμα + ${repDetails} + 2.0 km αποθεραπεία</div>
                                         </div>
                                     `;
-                                } else if (workoutIndex === trainingDays.length - 2) {
+                                } else if (workoutIndex === 3) {
                                     const thresholdDetails = getThresholdDetails(weeklyDistance);
                                     programHTML += `
                                         <div class="training-day">
-                                            <div class="day">${dayNames[dayNum]}:</div>
+                                            <div class="day">${dayNames[dayIndex]}:</div>
                                             <div class="workout intensity-workout">Threshold - 2.0 km ζέσταμα + ${thresholdDetails} + 2.0 km αποθεραπεία</div>
                                         </div>
                                     `;
                                 } else {
                                     programHTML += `
                                         <div class="training-day">
-                                            <div class="day">${dayNames[dayNum]}:</div>
+                                            <div class="day">${dayNames[dayIndex]}:</div>
                                             <div class="workout">Easy Run - ${dailyDistance} km</div>
                                         </div>
                                     `;
@@ -462,22 +437,22 @@
                                     const intervalDetails = getIntervalDetails(weeklyDistance);
                                     programHTML += `
                                         <div class="training-day">
-                                            <div class="day">${dayNames[dayNum]}:</div>
+                                            <div class="day">${dayNames[dayIndex]}:</div>
                                             <div class="workout intensity-workout">Interval - 2.0 km ζέσταμα + ${intervalDetails} + 2.0 km αποθεραπεία</div>
                                         </div>
                                     `;
-                                } else if (workoutIndex === trainingDays.length - 2) {
+                                } else if (workoutIndex === 3) {
                                     const thresholdDetails = getThresholdDetails(weeklyDistance);
                                     programHTML += `
                                         <div class="training-day">
-                                            <div class="day">${dayNames[dayNum]}:</div>
+                                            <div class="day">${dayNames[dayIndex]}:</div>
                                             <div class="workout intensity-workout">Threshold - 2.0 km ζέσταμα + ${thresholdDetails} + 2.0 km αποθεραπεία</div>
                                         </div>
                                     `;
                                 } else {
                                     programHTML += `
                                         <div class="training-day">
-                                            <div class="day">${dayNames[dayNum]}:</div>
+                                            <div class="day">${dayNames[dayIndex]}:</div>
                                             <div class="workout">Easy Run - ${dailyDistance} km</div>
                                         </div>
                                     `;
@@ -486,20 +461,12 @@
                                 // Τελευταία εβδομάδα: Tapering (μόνο εύκολα τρεξίματα)
                                 programHTML += `
                                     <div class="training-day">
-                                        <div class="day">${dayNames[dayNum]}:</div>
+                                        <div class="day">${dayNames[dayIndex]}:</div>
                                         <div class="workout">Easy Run - ${dailyDistance} km</div>
                                     </div>
                                 `;
                             }
                         }
-                    } else {
-                        // Εμφάνιση ημέρας χωρίς προπόνηση
-                        programHTML += `
-                            <div class="training-day">
-                                <div class="day">${dayNames[dayNum]}:</div>
-                                <div class="workout">Ρεπό</div>
-                            </div>
-                        `;
                     }
                 }
 
