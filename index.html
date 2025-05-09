@@ -3,182 +3,504 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Αρχιτεκτονικό Σχέδιο Πρόσοψης</title>
+    <title>Παραμετροποιήσιμο Πρόγραμμα Προπόνησης</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f9f9f9;
         }
-        canvas {
-            border: 1px solid black;
-            background-color: #f8f8f8;
-            display: block;
-            margin: 20px auto;
-        }
-        .controls {
-            margin-bottom: 10px;
+        h1, h2 {
+            color: #2c3e50;
             text-align: center;
+        }
+        h1 {
+            margin-top: 20px;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .week-container {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 25px;
+            padding: 15px;
+            border-left: 5px solid #3498db;
+        }
+        .week-header {
+            background-color: #3498db;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            text-align: center;
+            font-weight: bold;
+        }
+        .training-day {
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+            display: flex;
+        }
+        .training-day:last-child {
+            border-bottom: none;
+        }
+        .day {
+            width: 110px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .workout {
+            flex: 1;
+        }
+        .long-run {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        .intensity-workout {
+            color: #27ae60;
+            font-weight: bold;
+        }
+        .race-day {
+            color: #9b59b6;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+        .info-section {
+            background-color: #eaf2f8;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 5px solid #3498db;
+        }
+        form {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 25px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            display: block;
+            margin: 20px auto 0;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .day-selection {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .day-checkbox {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .day-checkbox input {
+            width: auto;
+            margin-bottom: 5px;
+        }
+        .error {
+            color: #e74c3c;
+            margin-top: 5px;
+            font-size: 14px;
+        }
+        @media (max-width: 768px) {
+            .day-selection {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+        @media (max-width: 600px) {
+            .training-day {
+                flex-direction: column;
+            }
+            .day {
+                margin-bottom: 5px;
+            }
+            .day-selection {
+                grid-template-columns: repeat(3, 1fr);
+            }
         }
     </style>
 </head>
 <body>
-    <h2 style="text-align:center;">Εφαρμογή Αρχιτεκτονικού Σχεδίου</h2>
+    <h1>Παραμετροποιήσιμο Πρόγραμμα Προπόνησης</h1>
 
-    <div class="controls">
-        <h3>Ορισμός Πρόσοψης</h3>
-        <label>Πλάτος (m): <input type="number" id="facadeWidth" value="5"></label>
-        <label>Ύψος (m): <input type="number" id="facadeHeight" value="3"></label>
-        <button onclick="setFacade()">Ορισμός</button>
+    <div class="info-section">
+        <h2>Βασικές Πληροφορίες</h2>
+        <p>Δημιουργήστε το προσωπικό σας πρόγραμμα προπόνησης επιλέγοντας τις παραμέτρους που σας ταιριάζουν. Η εβδομαδιαία απόσταση αυξάνεται προοδευτικά κατά 10% κάθε εβδομάδα, με την προτελευταία εβδομάδα να είναι μειωμένη κατά 10% για να ξεκουραστείτε πριν από την ημέρα του αγώνα.</p>
+        <p>Το πρόγραμμα περιλαμβάνει:</p>
+        <ul>
+            <li><strong>Easy Runs:</strong> Τρέξιμο σε άνετο ρυθμό για αύξηση της αντοχής</li>
+            <li><strong>Repetitions:</strong> Σύντομες, έντονες επαναλήψεις για βελτίωση της ταχύτητας</li>
+            <li><strong>Intervals:</strong> Διαλειμματική προπόνηση για βελτίωση της αναερόβιας ικανότητας</li>
+            <li><strong>Threshold Runs:</strong> Τρέξιμο στο αναερόβιο κατώφλι για βελτίωση του ρυθμού αγώνα</li>
+            <li><strong>Long Runs:</strong> Μεγάλες διαδρομές για προσαρμογή στην απόσταση</li>
+        </ul>
     </div>
 
-    <canvas id="drawingCanvas" width="1000" height="700"></canvas>
+    <form id="program-form">
+        <div class="form-group">
+            <label for="initial-distance">Αρχικά Χιλιόμετρα Πρώτης Εβδομάδας:</label>
+            <input type="number" id="initial-distance" name="initial-distance" min="10" max="100" value="30" step="0.5">
+        </div>
+        <div class="form-group">
+            <label for="weeks-number">Αριθμός Εβδομάδων Προετοιμασίας:</label>
+            <input type="number" id="weeks-number" name="weeks-number" min="4" max="24" value="10">
+        </div>
+        <div class="form-group">
+            <label for="training-days-count">Αριθμός Ημερών Προπόνησης (ανά εβδομάδα):</label>
+            <input type="number" id="training-days-count" name="training-days-count" min="3" max="6" value="5">
+        </div>
+        <div class="form-group">
+            <label>Επιλογή Ημερών Προπόνησης:</label>
+            <div class="day-selection">
+                <div class="day-checkbox">
+                    <input type="checkbox" id="day-1" name="training-days" value="1" checked>
+                    <label for="day-1">Δευτέρα</label>
+                </div>
+                <div class="day-checkbox">
+                    <input type="checkbox" id="day-2" name="training-days" value="2" checked>
+                    <label for="day-2">Τρίτη</label>
+                </div>
+                <div class="day-checkbox">
+                    <input type="checkbox" id="day-3" name="training-days" value="3" checked>
+                    <label for="day-3">Τετάρτη</label>
+                </div>
+                <div class="day-checkbox">
+                    <input type="checkbox" id="day-4" name="training-days" value="4" checked>
+                    <label for="day-4">Πέμπτη</label>
+                </div>
+                <div class="day-checkbox">
+                    <input type="checkbox" id="day-5" name="training-days" value="5" checked>
+                    <label for="day-5">Παρασκευή</label>
+                </div>
+                <div class="day-checkbox">
+                    <input type="checkbox" id="day-6" name="training-days" value="6">
+                    <label for="day-6">Σάββατο</label>
+                </div>
+                <div class="day-checkbox">
+                    <input type="checkbox" id="day-0" name="training-days" value="0">
+                    <label for="day-0">Κυριακή</label>
+                </div>
+            </div>
+            <div id="days-error" class="error"></div>
+        </div>
+        <div class="form-group">
+            <label for="race-day">Ημέρα Αγώνα (τελευταία μέρα του προγράμματος):</label>
+            <select id="race-day" name="race-day">
+                <option value="1">Δευτέρα</option>
+                <option value="2">Τρίτη</option>
+                <option value="3">Τετάρτη</option>
+                <option value="4">Πέμπτη</option>
+                <option value="5">Παρασκευή</option>
+                <option value="6">Σάββατο</option>
+                <option value="0" selected>Κυριακή</option>
+            </select>
+        </div>
+        <button type="submit">Δημιουργία Προγράμματος</button>
+    </form>
 
-    <div class="controls">
-        <h3>Προσθήκη Αντικειμένου</h3>
-        <input type="text" id="objectName" placeholder="Όνομα αντικειμένου">
-        <input type="number" id="objectWidth" placeholder="Πλάτος (m)">
-        <input type="number" id="objectHeight" placeholder="Ύψος (m)">
-        <input type="number" id="posX" placeholder="Απόσταση Χ (m)">
-        <input type="number" id="posY" placeholder="Απόσταση Ψ (m)">
-        <button onclick="addObject()">Προσθήκη</button>
-    </div>
-
-    <h3>Αντικείμενα</h3>
-    <ul id="objectList"></ul>
-
-    <div class="controls">
-        <button onclick="clearCanvas()">Εκκαθάριση Σχεδίου</button>
-        <button onclick="saveDesign()">Αποθήκευση</button>
-        <button onclick="loadDesign()">Φόρτωση</button>
+    <div id="program-content">
+        <!-- Εδώ θα εμφανιστεί το πρόγραμμα -->
     </div>
 
     <script>
-        const canvas = document.getElementById("drawingCanvas");
-        const ctx = canvas.getContext("2d");
+        document.addEventListener('DOMContentLoaded', function() {
+            // Ονόματα ημερών - ΣΗΜΑΝΤΙΚΟ: Αρχίζοντας από Δευτέρα (index 1)
+            const dayNames = ['Κυριακή', 'Δευτέρα', 'Τρίτη', 'Τετάρτη', 'Πέμπτη', 'Παρασκευή', 'Σάββατο'];
 
-        let objects = [];
-        let facade = { width: 5, height: 3, x: 0, y: 0 };
-        let scale = 100; // Δυναμική προσαρμογή
+            // Περιορισμός στην επιλογή ημερών βάσει του επιλεγμένου αριθμού
+            const trainingDaysCountInput = document.getElementById('training-days-count');
+            const dayCheckboxes = document.querySelectorAll('input[name="training-days"]');
+            const errorDiv = document.getElementById('days-error');
 
-        function setFacade() {
-            facade.width = parseFloat(document.getElementById("facadeWidth").value);
-            facade.height = parseFloat(document.getElementById("facadeHeight").value);
-            adjustScale();
-            redrawCanvas();
-        }
-
-        function adjustScale() {
-            const maxWidth = canvas.width * 0.7;
-            const maxHeight = canvas.height * 0.7;
-            const scaleX = maxWidth / facade.width;
-            const scaleY = maxHeight / facade.height;
-            scale = Math.min(scaleX, scaleY); // Επιλέγει τη μικρότερη κλίμακα για να ταιριάζει
-        }
-
-        function addObject() {
-            let name = document.getElementById("objectName").value;
-            let width = parseFloat(document.getElementById("objectWidth").value);
-            let height = parseFloat(document.getElementById("objectHeight").value);
-            let x = parseFloat(document.getElementById("posX").value);
-            let y = parseFloat(document.getElementById("posY").value);
-
-            if (!name || isNaN(width) || isNaN(height) || isNaN(x) || isNaN(y)) {
-                alert("Συμπληρώστε όλα τα πεδία σωστά!");
-                return;
-            }
-
-            let obj = { name, width, height, x, y };
-            objects.push(obj);
-            updateObjectList();
-            redrawCanvas();
-        }
-
-        function redrawCanvas() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            let canvasCenterX = canvas.width / 2;
-            let canvasBottomY = canvas.height - 50;
-
-            let facadeX = canvasCenterX - (facade.width * scale) / 2;
-            let facadeY = canvasBottomY - facade.height * scale;
-
-            ctx.strokeStyle = "black";
-            ctx.lineWidth = 2;
-            ctx.strokeRect(facadeX, facadeY, facade.width * scale, facade.height * scale);
-
-            ctx.fillStyle = "black";
-            ctx.font = "16px Arial";
-            ctx.fillText("Πρόσοψη", facadeX + 10, facadeY + 20);
-
-            objects.forEach(obj => {
-                let objX = facadeX + obj.x * scale;
-                let objY = canvasBottomY - (obj.y + obj.height) * scale;
-
-                ctx.fillStyle = "blue";
-                ctx.fillRect(objX, objY, obj.width * scale, obj.height * scale);
-
-                ctx.fillStyle = "white";
-                ctx.font = "14px Arial";
-                ctx.fillText(obj.name, objX + 5, objY + 15);
-
-                ctx.fillStyle = "black";
-                ctx.font = "12px Arial";
-                ctx.fillText(`${obj.width}m`, objX + obj.width * scale / 2 - 10, objY - 5);
-                ctx.fillText(`${obj.height}m`, objX - 30, objY + obj.height * scale / 2);
+            // Ενημέρωση των ημερών προπόνησης όταν αλλάζει ο αριθμός τους
+            trainingDaysCountInput.addEventListener('change', function() {
+                const desiredCount = parseInt(this.value);
+                updateDaysValidation(desiredCount);
             });
 
-            ctx.strokeStyle = "red";
-            ctx.beginPath();
-            ctx.moveTo(facadeX, canvasBottomY);
-            ctx.lineTo(facadeX + facade.width * scale, canvasBottomY);
-            ctx.stroke();
+            // Έλεγχος επιλεγμένων ημερών κάθε φορά που αλλάζει μια επιλογή
+            dayCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    const desiredCount = parseInt(trainingDaysCountInput.value);
+                    const checkedDays = document.querySelectorAll('input[name="training-days"]:checked');
 
-            ctx.beginPath();
-            ctx.moveTo(facadeX, canvasBottomY);
-            ctx.lineTo(facadeX, canvasBottomY - facade.height * scale);
-            ctx.stroke();
-        }
-
-        function updateObjectList() {
-            let list = document.getElementById("objectList");
-            list.innerHTML = "";
-            objects.forEach((obj, index) => {
-                let li = document.createElement("li");
-                li.innerHTML = `${obj.name} (Π: ${obj.width}m, Υ: ${obj.height}m, X: ${obj.x}m, Y: ${obj.y}m) 
-                <button onclick="deleteObject(${index})">Διαγραφή</button>`;
-                list.appendChild(li);
+                    if (checkedDays.length > desiredCount) {
+                        this.checked = false;
+                        errorDiv.textContent = `Επιλέξτε ακριβώς ${desiredCount} ημέρες προπόνησης`;
+                    } else {
+                        errorDiv.textContent = checkedDays.length < desiredCount ?
+                            `Επιλέξτε ακριβώς ${desiredCount} ημέρες προπόνησης` : '';
+                    }
+                });
             });
-        }
 
-        function deleteObject(index) {
-            objects.splice(index, 1);
-            updateObjectList();
-            redrawCanvas();
-        }
+            // Ενημέρωση εγκυρότητας ημερών με βάση τον αριθμό
+            function updateDaysValidation(desiredCount) {
+                const checkedDays = document.querySelectorAll('input[name="training-days"]:checked');
 
-        function clearCanvas() {
-            objects = [];
-            updateObjectList();
-            redrawCanvas();
-        }
+                // Αν έχουμε περισσότερες επιλεγμένες ημέρες από το επιθυμητό
+                if (checkedDays.length > desiredCount) {
+                    // Αφαιρούμε τις πλεονάζουσες επιλογές από το τέλος
+                    for (let i = checkedDays.length - 1; i >= desiredCount; i--) {
+                        checkedDays[i].checked = false;
+                    }
+                }
 
-        function saveDesign() {
-            localStorage.setItem("design", JSON.stringify(objects));
-            alert("Το σχέδιο αποθηκεύτηκε!");
-        }
-
-        function loadDesign() {
-            let savedObjects = JSON.parse(localStorage.getItem("design"));
-            if (savedObjects) {
-                objects = savedObjects;
-                updateObjectList();
-                redrawCanvas();
-            } else {
-                alert("Δεν βρέθηκε αποθηκευμένο σχέδιο.");
+                // Εμφάνιση κατάλληλου μηνύματος εάν χρειάζεται
+                const newCheckedCount = document.querySelectorAll('input[name="training-days"]:checked').length;
+                errorDiv.textContent = newCheckedCount < desiredCount ?
+                    `Επιλέξτε ακριβώς ${desiredCount} ημέρες προπόνησης` : '';
             }
-        }
 
-        adjustScale();
-        redrawCanvas();
+            // Φόρμα υποβολής για δημιουργία προγράμματος
+            document.getElementById('program-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                const initialDistance = parseFloat(document.getElementById('initial-distance').value);
+                const weeksNumber = parseInt(document.getElementById('weeks-number').value);
+                const desiredDaysCount = parseInt(document.getElementById('training-days-count').value);
+                const raceDay = parseInt(document.getElementById('race-day').value);
+
+                // Συλλογή επιλεγμένων ημερών προπόνησης
+                const selectedDays = [];
+                document.querySelectorAll('input[name="training-days"]:checked').forEach(checkbox => {
+                    selectedDays.push(parseInt(checkbox.value));
+                });
+
+                // Έλεγχος για τον σωστό αριθμό ημερών προπόνησης
+                if (selectedDays.length !== desiredDaysCount) {
+                    errorDiv.textContent = `Επιλέξτε ακριβώς ${desiredDaysCount} ημέρες προπόνησης`;
+                    return;
+                }
+
+                // Δημιουργία προγράμματος προπόνησης
+                createTrainingProgram(initialDistance, weeksNumber, selectedDays, raceDay);
+            });
+
+            // Αρχική δημιουργία προγράμματος με τις προεπιλεγμένες τιμές
+            const initialSelectedDays = [1, 2, 3, 4, 5]; // Δευτέρα έως Παρασκευή
+            createTrainingProgram(30, 10, initialSelectedDays, 0); // Προεπιλογή: Κυριακή αγώνα
+
+            // Αρχικοποίηση ελέγχου ημερών προπόνησης
+            updateDaysValidation(parseInt(trainingDaysCountInput.value));
+        });
+
+        function createTrainingProgram(initialDistance, weeksNumber, trainingDays, raceDay) {
+            // Ταξινόμηση των ημερών προπόνησης
+            trainingDays.sort((a, b) => a - b);
+
+            // Ονόματα ημερών
+            const dayNames = ['Κυριακή', 'Δευτέρα', 'Τρίτη', 'Τετάρτη', 'Πέμπτη', 'Παρασκευή', 'Σάββατο'];
+
+            // Αρχικοποίηση εβδομαδιαίων αποστάσεων
+            let weeklyDistances = [initialDistance];
+            for (let i = 1; i < weeksNumber; i++) {
+                weeklyDistances.push(Math.round(weeklyDistances[i-1] * 1.1 * 10) / 10);
+            }
+
+            // Μείωση της προτελευταίας εβδομάδας κατά 10%
+            if (weeksNumber > 1) {
+                weeklyDistances[weeksNumber-2] = Math.round(weeklyDistances[weeksNumber-2] * 0.9 * 10) / 10;
+            }
+
+            // Εύρεση της ημέρας για το long run (συνήθως μια κύρια ημέρα, π.χ. Σάββατο αν υπάρχει)
+            let longRunDayIndex;
+            if (trainingDays.includes(6)) { // Αν έχουμε Σάββατο, το χρησιμοποιούμε για long run
+                longRunDayIndex = trainingDays.indexOf(6);
+            } else if (trainingDays.includes(0)) { // Αν έχουμε Κυριακή
+                longRunDayIndex = trainingDays.indexOf(0);
+            } else { // Αλλιώς, χρησιμοποιούμε την τελευταία ημέρα προπόνησης
+                longRunDayIndex = trainingDays.length - 1;
+            }
+
+            // Συναρτήσεις υπολογισμού λεπτομερειών προπόνησης
+            function getRepetitionDetails(weeklyDistance, maxWeeks) {
+                const repDistance = Math.round(weeklyDistance * 0.05 * 10) / 10;
+                const repLength = weeklyDistance < weeklyDistances[Math.floor(maxWeeks/2)] ? 200 : 400;
+                const numReps = Math.floor(repDistance * 1000 / repLength);
+                return ``${{numReps}×}$`{repLength}μ`;
+            }
+
+            function getIntervalDetails(weeklyDistance) {
+                const intervalDistance = Math.round(weeklyDistance * 0.07 * 10) / 10;
+                const intervalLength = 400;
+                const numIntervals = Math.floor(intervalDistance * 1000 / intervalLength);
+                return ``${{numIntervals}×}$`{intervalLength}μ`;
+            }
+
+            function getThresholdDetails(weeklyDistance) {
+                const thresholdDistance = Math.round(weeklyDistance * 0.1 * 10) / 10;
+                return `${thresholdDistance} km`;
+            }
+
+            // Δημιουργία HTML για το πρόγραμμα
+            let programHTML = '';
+
+            for (let week = 0; week < weeksNumber; week++) {
+                const weeklyDistance = weeklyDistances[week];
+                const longRun = Math.round(weeklyDistance * 0.27 * 10) / 10;
+
+                // Υπολογισμός της απόστασης που θα μοιραστεί στις υπόλοιπες μέρες
+                const remainingDistance = Math.round((weeklyDistance - longRun) * 10) / 10;
+                const dailyDistance = Math.round(remainingDistance / (trainingDays.length - 1) * 10) / 10;
+
+                // Προσθήκη εβδομάδας
+                programHTML += `
+                    <div class="week-container">
+                        <div class="week-header">
+                            Εβδομάδα `${{week + 1} - Συνολική Απόσταση:}$`{weeklyDistance} km
+                        </div>
+                `;
+
+                // Προσθήκη ημερών της εβδομάδας
+                for (let dayIndex = 0; dayIndex < 7; dayIndex++) {
+                    const dayNum = (dayIndex + 1) % 7; // Μετατροπή από 0-6 σε 1-0 (Δευ-Κυρ)
+                    const isTrainingDay = trainingDays.includes(dayNum);
+                    const isRaceDay = (week === weeksNumber-1 && dayNum === raceDay);
+                    const isLongRunDay = isTrainingDay && (trainingDays.indexOf(dayNum) === longRunDayIndex);
+
+                    if (isRaceDay) {
+                        // Ημέρα αγώνα (μόνο την τελευταία εβδομάδα)
+                        programHTML += `
+                            <div class="training-day">
+                                <div class="day">${dayNames[dayNum]}:</div>
+                                <div class="workout race-day">ΗΜΕΡΑ ΑΓΩΝΑ - ΑΓΩΝΑΣ 42.195 km</div>
+                            </div>
+                        `;
+                    } else if (isTrainingDay) {
+                        // Κανονική ημέρα προπόνησης
+                        if (isLongRunDay) {
+                            // Μεγάλη διαδρομή
+                            programHTML += `
+                                <div class="training-day">
+                                    <div class="day">${dayNames[dayNum]}:</div>
+                                    <div class="workout long-run">Long Run - ${longRun} km</div>
+                                </div>
+                            `;
+                        } else {
+                            // Άλλος τύπος προπόνησης ανάλογα με την εβδομάδα
+                            const workoutIndex = trainingDays.indexOf(dayNum);
+
+                            if (week < 2) {
+                                // Πρώτες 2 εβδομάδες: Μόνο εύκολα τρεξίματα
+                                programHTML += `
+                                    <div class="training-day">
+                                        <div class="day">${dayNames[dayNum]}:</div>
+                                        <div class="workout">Easy Run - ${dailyDistance} km</div>
+                                    </div>
+                                `;
+                            } else if (week < Math.floor(weeksNumber/2)) {
+                                // Πρώτο μισό του προγράμματος: Εισαγωγή επαναλήψεων και προπόνησης κατωφλίου
+                                if (workoutIndex === 1) {
+                                    const repDetails = getRepetitionDetails(weeklyDistance, weeksNumber);
+                                    programHTML += `
+                                        <div class="training-day">
+                                            <div class="day">${dayNames[dayNum]}:</div>
+                                            <div class="workout intensity-workout">Repetition - 2.0 km ζέσταμα + ${repDetails} + 2.0 km αποθεραπεία</div>
+                                        </div>
+                                    `;
+                                } else if (workoutIndex === trainingDays.length - 2) {
+                                    const thresholdDetails = getThresholdDetails(weeklyDistance);
+                                    programHTML += `
+                                        <div class="training-day">
+                                            <div class="day">${dayNames[dayNum]}:</div>
+                                            <div class="workout intensity-workout">Threshold - 2.0 km ζέσταμα + ${thresholdDetails} + 2.0 km αποθεραπεία</div>
+                                        </div>
+                                    `;
+                                } else {
+                                    programHTML += `
+                                        <div class="training-day">
+                                            <div class="day">${dayNames[dayNum]}:</div>
+                                            <div class="workout">Easy Run - ${dailyDistance} km</div>
+                                        </div>
+                                    `;
+                                }
+                            } else if (week < weeksNumber-1) {
+                                // Δεύτερο μισό του προγράμματος: Αλλαγή σε διαλειμματικά και προπόνηση κατωφλίου
+                                if (workoutIndex === 1) {
+                                    const intervalDetails = getIntervalDetails(weeklyDistance);
+                                    programHTML += `
+                                        <div class="training-day">
+                                            <div class="day">${dayNames[dayNum]}:</div>
+                                            <div class="workout intensity-workout">Interval - 2.0 km ζέσταμα + ${intervalDetails} + 2.0 km αποθεραπεία</div>
+                                        </div>
+                                    `;
+                                } else if (workoutIndex === trainingDays.length - 2) {
+                                    const thresholdDetails = getThresholdDetails(weeklyDistance);
+                                    programHTML += `
+                                        <div class="training-day">
+                                            <div class="day">${dayNames[dayNum]}:</div>
+                                            <div class="workout intensity-workout">Threshold - 2.0 km ζέσταμα + ${thresholdDetails} + 2.0 km αποθεραπεία</div>
+                                        </div>
+                                    `;
+                                } else {
+                                    programHTML += `
+                                        <div class="training-day">
+                                            <div class="day">${dayNames[dayNum]}:</div>
+                                            <div class="workout">Easy Run - ${dailyDistance} km</div>
+                                        </div>
+                                    `;
+                                }
+                            } else {
+                                // Τελευταία εβδομάδα: Tapering (μόνο εύκολα τρεξίματα)
+                                programHTML += `
+                                    <div class="training-day">
+                                        <div class="day">${dayNames[dayNum]}:</div>
+                                        <div class="workout">Easy Run - ${dailyDistance} km</div>
+                                    </div>
+                                `;
+                            }
+                        }
+                    } else {
+                        // Εμφάνιση ημέρας χωρίς προπόνηση
+                        programHTML += `
+                            <div class="training-day">
+                                <div class="day">${dayNames[dayNum]}:</div>
+                                <div class="workout">Ρεπό</div>
+                            </div>
+                        `;
+                    }
+                }
+
+                programHTML += `</div>`;
+            }
+
+            // Προσθήκη του προγράμματος στη σελίδα
+            document.getElementById('program-content').innerHTML = programHTML;
+        }
     </script>
 </body>
 </html>
