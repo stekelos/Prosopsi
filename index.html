@@ -46,11 +46,8 @@
     <input type="number" id="weeks" value="12" min="6" max="24" />
     <label>Ημέρες Προπόνησης/Εβδομάδα:</label>
     <select id="daysPerWeek">
-      <option value="3">3</option>
-      <option value="4">4</option>
       <option value="5">5</option>
       <option value="6">6</option>
-      <option value="7">7</option>
     </select>
     <button onclick="generatePlan()">Δημιουργία Προγράμματος</button>
   </div>
@@ -62,7 +59,6 @@
   </div>
 
   <script>
-    // Υπολογισμός VDOT
     function parseTime(timeStr) {
       const parts = timeStr.split(':').map(Number);
       return parts[0] * 3600 + parts[1] * 60 + parts[2];
@@ -82,7 +78,6 @@
       localStorage.setItem('vdot', vdot.toFixed(1));
     }
 
-    // Δημιουργία Προγράμματος
     function generatePlan() {
       const weeks = parseInt(document.getElementById('weeks').value);
       const days = parseInt(document.getElementById('daysPerWeek').value);
@@ -91,16 +86,45 @@
       const intensities = ['E (Easy)', 'M (Marathon)', 'T (Threshold)', 'I (Intervals)', 'R (Repetition)'];
 
       let plan = `Πλάνο Προπόνησης για ${target}km\nΔιάρκεια: ${weeks} εβδομάδες\nVDOT: ${vdot}\nΗμέρες/εβδομάδα: ${days}\n\n`;
+
+      let totalMileage = 30; // Αρχικό mileage για την 1η εβδομάδα (μπορείς να το αλλάξεις)
+      let decreaseFactor = 0.8; // Για τις τελευταίες 2 εβδομάδες
+
       for (let i = 1; i <= weeks; i++) {
-        const focus = intensities.slice(0, days).join(', ');
-        plan += `Εβδομάδα ${i}: Προπονήσεις: ${focus}\n`;
+        let weekPlan = `Εβδομάδα ${i}: `;
+
+        if (i >= weeks - 2) {
+          totalMileage *= decreaseFactor;  // Μείωση του mileage κατά 20% στις τελευταίες εβδομάδες
+        } else if (i > 1) {
+          totalMileage *= 1.1;  // Αυξάνεται το mileage κατά 10% κάθε εβδομάδα
+        }
+
+        let weekMileage = Math.round(totalMileage);
+        let trainingDays = ['Δευτέρα', 'Τρίτη', 'Τετάρτη', 'Πέμπτη', 'Παρασκευή', 'Σάββατο'];
+
+        let workouts = ['E', 'M', 'T', 'I', 'R']; // Αρχικές προπονήσεις για την 1η εβδομάδα
+
+        // Αλλάζουμε τις προπονήσεις για τις τελευταίες εβδομάδες
+        if (i >= weeks - 2) {
+          workouts = ['I', 'T', 'T', 'I', 'R'];
+        } else if (i > 1) {
+          workouts = ['E', 'M', 'T', 'I', 'R'];  // Προπόνηση με I και T μετά τη 2η εβδομάδα
+        }
+
+        plan += `Συνολικό mileage: ${weekMileage} km\n`;
+
+        // Προσθήκη προπονήσεων κάθε ημέρα
+        for (let j = 0; j < days; j++) {
+          plan += `${trainingDays[j]}: ${workouts[j]}- ${weekMileage / days} km\n`;
+        }
+
+        plan += '\n';
       }
 
       document.getElementById('planArea').value = plan;
       localStorage.setItem('trainingPlan', plan);
     }
 
-    // Εξαγωγή σε PDF
     function exportPDF() {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
@@ -114,7 +138,6 @@
       doc.save('training_plan.pdf');
     }
 
-    // Φόρτωση αποθηκευμένου προγράμματος
     window.onload = () => {
       const saved = localStorage.getItem('trainingPlan');
       if (saved) document.getElementById('planArea').value = saved;
