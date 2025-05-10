@@ -47,25 +47,29 @@
         #trainingPlan {
             margin-top: 20px;
             border: 1px solid #ddd;
-            padding: 15px;
+            padding: 10px; /* Μειωμένο padding */
             font-family: 'Arial Unicode MS', Arial, sans-serif;
+            font-size: 12pt; /* Μέγεθος γραμματοσειράς 12 */
+            line-height: 1.5; /* Ύψος γραμμής για έλεγχο κενών */
         }
         .week {
-            margin-bottom: 20px;
+            margin-bottom: 10px; /* Μειωμένο margin για λιγότερα κενά */
             page-break-inside: avoid;
             break-inside: avoid;
         }
         .day {
             margin-left: 20px;
+            margin-bottom: 5px; /* Μειωμένο margin για λιγότερα κενά */
         }
         .error {
             color: red;
             margin-top: 10px;
         }
         .signature {
-            margin-top: 20px;
+            margin-top: 10px; /* Μειωμένο margin */
             text-align: center;
             font-style: italic;
+            font-size: 12pt; /* Ίδιο μέγεθος γραμματοσειράς */
             page-break-inside: avoid;
             break-inside: avoid;
         }
@@ -198,7 +202,7 @@
 
                     // Last week special case
                     if (week === weeks) {
-                        weekMileage = 5 + 5 + (prevWeekThresholdDistance * 0.8 + 4); // 2 easy runs (5km), reduced threshold + 4km (warm-up/cool-down Laat
+                        weekMileage = 5 + 5 + (prevWeekThresholdDistance * 0.8 + 4); // 2 easy runs (5km), reduced threshold + 4km (warm-up/cool-down)
                     }
 
                     plan += `<div class="week"><h2>Εβδομάδα ${week} (από ${weekStart.toLocaleDateString('el-GR')}) - ${weekMileage.toFixed(1)} χλμ</h2>`;
@@ -239,7 +243,7 @@
                             const distance = type === 'Threshold' ? weekMileage * 0.12 : type === 'Interval' ? weekMileage * 0.07 : weekMileage * 0.05;
                             if (type === 'Threshold') prevWeekThresholdDistance = distance;
                             const splits = getSplits(type, distance);
-                            plan += `<div class="week"><strong>${dayNames[i]} (${currentDate.toLocaleDateString('el-GR')}):</strong> ${type} - 2 χλμ ζέσταμα, ${splits}, 2 χλμ αποθεραπεία (Σύνολο: ${(distance + 4).toFixed(1)} χλμ)</div>`;
+                            plan += `<div class="day"><strong>${dayNames[i]} (${currentDate.toLocaleDateString('el-GR')}):</strong> ${type} - 2 χλμ ζέσταμα, ${splits}, 2 χλμ αποθεραπεία (Σύνολο: ${(distance + 4).toFixed(1)} χλμ)</div>`;
                         } else if (week !== weeks) {
                             plan += `<div class="day"><strong>${dayNames[i]} (${currentDate.toLocaleDateString('el-GR')}):</strong> Easy Run - ${easyRun.toFixed(1)} χλμ</div>`;
                         }
@@ -292,15 +296,16 @@
         function downloadPDF() {
             const element = document.getElementById('trainingPlan');
             const opt = {
-                margin: [0.3, 0.3, 0.3, 0.3], // Reduced margins to fit more content
+                margin: [0.2, 0.2, 0.2, 0.2], // Πολύ μικρά περιθώρια για περισσότερο περιεχόμενο
                 filename: 'Stefanaik_Training_Plan.pdf',
                 image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, useCORS: true, windowWidth: 800 }, // Fixed width for consistent rendering
+                html2canvas: { scale: 2, useCORS: true, windowWidth: 800 },
                 jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' },
-                pagebreak: { mode: ['css', 'legacy'], avoid: ['.week', '.signature'] } // Explicitly avoid breaking weeks and signature
+                pagebreak: { mode: ['css', 'legacy'], avoid: ['.week', '.signature', '.day'] } // Αποφυγή διάσπασης ημερών, εβδομάδων, υπογραφής
             };
             html2pdf().from(element).set(opt).toPdf().get('pdf').then(function (pdf) {
                 pdf.setFont("Arial", "normal");
+                pdf.setFontSize(12); // Εξασφάλιση μεγέθους γραμματοσειράς 12 στο PDF
             }).save();
         }
     </script>
