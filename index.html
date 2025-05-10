@@ -30,6 +30,7 @@
             flex-wrap: wrap;
             gap: 20px;
         }
+        Decentralized
         .days-group {
             flex: 1 1 30%;
         }
@@ -48,6 +49,7 @@
             margin-top: 20px;
             border: 1px solid #ddd;
             padding: 15px;
+            font-family: 'Arial Unicode MS', Arial, sans-serif;
         }
         .week {
             margin-bottom: 20px;
@@ -174,22 +176,21 @@
             try {
                 for (let week = 1; week <= weeks; week++) {
                     const weekStart = new Date(nextMonday.getTime() + (week - 1) * msPerWeek);
-                    let weekMileage = week === weeks ? currentMileage * 0.9 : week === weeks - 1 ? currentMileage * 0.8 : currentMileage;
-                    let longRun = weekMileage * 0.25;
-                    let easyRun = days.length > 1 ? (weekMileage - longRun) / (days.length - 1) : 0;
+                    let weekMileage = week === weeks ? 0 : week === weeks - 1 ? currentMileage * 0.8 : currentMileage;
+                    let longRun = week === weeks ? 0 : weekMileage * 0.25;
+                    let easyRun = days.length > 1 && week !== weeks ? (weekMileage - longRun) / (days.length - 1) : 0;
 
                     // Quality workouts
                     let qualityDays = [];
                     if (week >= 2 && week <= qualityWeeksStart || week > qualityWeeksStart && week < weeks) {
                         qualityDays = selectQualityDays(days, 2);
+                    } else if (week === weeks) {
+                        qualityDays = selectQualityDays(days, 1); // Only one quality day for threshold
                     }
 
                     // Last week special case
                     if (week === weeks) {
-                        qualityDays = selectQualityDays(days, 1); // Only one quality day for threshold
-                        weekMileage = 5 + 5 + (prevWeekThresholdDistance * 0.6) + 4; // 2 easy runs (5km), reduced threshold + 4km (warm-up/cool-down)
-                        longRun = 0;
-                        easyRun = 5;
+                        weekMileage = 5 + 5 + (prevWeekThresholdDistance * 0.6 + 4); // 2 easy runs (5km), reduced threshold + 4km (warm-up/cool-down)
                     }
 
                     plan += `<div class="week"><h2>Εβδομάδα ${week} (από ${weekStart.toLocaleDateString('el-GR')}) - ${weekMileage.toFixed(1)} χλμ</h2>`;
@@ -280,13 +281,16 @@
         function downloadPDF() {
             const element = document.getElementById('trainingPlan');
             const opt = {
-                margin: 1,
+                margin: 0.5,
                 filename: 'Stefanaik_Training_Plan.pdf',
                 image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2 },
+                html2canvas: { scale: 2, useCORS: true },
                 jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
             };
-            html2pdf().from(element).set(opt).save();
+            html2pdf().from(element).set(opt).toPdf().get('pdf').then(function (pdf) {
+                // Ensure Greek characters are rendered correctly
+                pdf.setFont("Arial", "normal");
+            }).save();
         }
     </script>
 </body>
