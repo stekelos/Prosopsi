@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Πρόγραμμα Προπόνησης</title>
+    <title>Stefanaik - Πρόγραμμα Προπόνησης</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -24,12 +25,21 @@
             padding: 8px;
             margin-bottom: 10px;
         }
+        .days-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .days-group {
+            flex: 1 1 30%;
+        }
         button {
             padding: 10px 20px;
             background-color: #28a745;
             color: white;
             border: none;
             cursor: pointer;
+            margin-right: 10px;
         }
         button:hover {
             background-color: #218838;
@@ -52,21 +62,38 @@
     </style>
 </head>
 <body>
-    <h1>Δημιουργία Προγράμματος Προπόνησης</h1>
+    <h1>Stefanaik - Δημιουργία Προγράμματος Προπόνησης</h1>
     <form id="trainingForm">
         <div class="form-group">
-            <label>Ποιες μέρες θα γυμναστείτε; (Επιλέξτε τουλάχιστον 3)</label>
-            <input type="checkbox" name="days" value="0"> Δευτέρα<br>
-            <input type="checkbox" name="days" value="1"> Τρίτη<br>
-            <input type="checkbox" name="days" value="2"> Τετάρτη<br>
-            <input type="checkbox" name="days" value="3"> Πέμπτη<br>
-            <input type="checkbox" name="days" value="4"> Παρασκευή<br>
-            <input type="checkbox" name="days" value="5"> Σάββατο<br>
-            <input type="checkbox" name="days" value="6"> Κυριακή
+            <label for="name">Όνομα:</label>
+            <input type="text" id="name" name="name" required>
         </div>
         <div class="form-group">
-            <label for="distance">Απόσταση αγώνα (χλμ):</label>
-            <input type="number" id="distance" name="distance" min="1" step="0.1" required>
+            <label>Ποιες μέρες θα γυμναστείτε; (Επιλέξτε τουλάχιστον 3)</label>
+            <div class="days-container">
+                <div class="days-group">
+                    <input type="checkbox" name="days" value="0"> Δευτέρα<br>
+                    <input type="checkbox" name="days" value="1"> Τρίτη<br>
+                    <input type="checkbox" name="days" value="2"> Τετάρτη
+                </div>
+                <div class="days-group">
+                    <input type="checkbox" name="days" value="3"> Πέμπτη<br>
+                    <input type="checkbox" name="days" value="4"> Παρασκευή<br>
+                    <input type="checkbox" name="days" value="5"> Σάββατο
+                </div>
+                <div class="days-group">
+                    <input type="checkbox" name="days" value="6"> Κυριακή
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="distance">Απόσταση αγώνα:</label>
+            <select id="distance" name="distance" required>
+                <option value="5">5 χλμ</option>
+                <option value="10">10 χλμ</option>
+                <option value="21.1">Ημιμαραθώνιος (21.1 χλμ)</option>
+                <option value="42.2">Μαραθώνιος (42.2 χλμ)</option>
+            </select>
         </div>
         <div class="form-group">
             <label for="raceDate">Ημερομηνία αγώνα:</label>
@@ -77,6 +104,7 @@
             <input type="number" id="weeklyMileage" name="weeklyMileage" min="1" step="0.1" required>
         </div>
         <button type="submit">Δημιουργία Προγράμματος</button>
+        <button type="button" id="downloadPdf" style="display: none;" onclick="downloadPDF()">Λήψη ως PDF</button>
     </form>
     <div id="errorMessage" class="error"></div>
     <div id="trainingPlan"></div>
@@ -92,6 +120,7 @@
             errorDiv.textContent = '';
             document.getElementById('trainingPlan').innerHTML = '';
 
+            const name = document.getElementById('name').value;
             const days = Array.from(document.querySelectorAll('input[name="days"]:checked')).map(d => parseInt(d.value));
             const raceDistance = parseFloat(document.getElementById('distance').value);
             const raceDateInput = document.getElementById('raceDate').value;
@@ -99,12 +128,16 @@
             const today = new Date('2025-05-10');
 
             // Validation
+            if (!name) {
+                errorDiv.textContent = 'Παρακαλώ εισάγετε το όνομά σας.';
+                return;
+            }
             if (days.length < 3) {
                 errorDiv.textContent = 'Παρακαλώ επιλέξτε τουλάχιστον 3 μέρες προπόνησης.';
                 return;
             }
-            if (isNaN(raceDistance) || raceDistance <= 0) {
-                errorDiv.textContent = 'Παρακαλώ εισάγετε έγκυρη απόσταση αγώνα.';
+            if (isNaN(raceDistance)) {
+                errorDiv.textContent = 'Παρακαλώ επιλέξτε απόσταση αγώνα.';
                 return;
             }
             if (!raceDateInput) {
@@ -117,6 +150,7 @@
             }
 
             const raceDate = new Date(raceDateInput);
+            const distanceText = document.getElementById('distance').options[document.getElementById('distance').selectedIndex].text;
 
             // Find next Monday
             const nextMonday = new Date(today);
@@ -131,17 +165,18 @@
             }
 
             // Initialize training plan
-            let plan = '';
+            let plan = `<h2>Προσωποποιημένο Πρόγραμμα για ${name} στα ${distanceText}</h2>`;
             let currentMileage = weeklyMileage * 0.9; // First week -10%
             const qualityWeeksStart = weeks - 6; // Last 5 weeks before race week for quality
             const dayNames = ['Δευτέρα', 'Τρίτη', 'Τετάρτη', 'Πέμπτη', 'Παρασκευή', 'Σάββατο', 'Κυριακή'];
+            let prevWeekThresholdDistance = 0;
 
             try {
                 for (let week = 1; week <= weeks; week++) {
                     const weekStart = new Date(nextMonday.getTime() + (week - 1) * msPerWeek);
                     let weekMileage = week === weeks ? currentMileage * 0.9 : week === weeks - 1 ? currentMileage * 0.8 : currentMileage;
-                    const longRun = weekMileage * 0.25;
-                    const easyRun = days.length > 1 ? (weekMileage - longRun) / (days.length - 1) : 0;
+                    let longRun = weekMileage * 0.25;
+                    let easyRun = days.length > 1 ? (weekMileage - longRun) / (days.length - 1) : 0;
 
                     // Quality workouts
                     let qualityDays = [];
@@ -149,7 +184,18 @@
                         qualityDays = selectQualityDays(days, 2);
                     }
 
+                    // Last week special case
+                    if (week === weeks) {
+                        qualityDays = selectQualityDays(days, 1); // Only one quality day for threshold
+                        weekMileage = 5 + 5 + (prevWeekThresholdDistance * 0.6) + 4; // 2 easy runs (5km), reduced threshold + 4km (warm-up/cool-down)
+                        longRun = 0;
+                        easyRun = 5;
+                    }
+
                     plan += `<div class="week"><h2>Εβδομάδα ${week} (από ${weekStart.toLocaleDateString('el-GR')}) - ${weekMileage.toFixed(1)} χλμ</h2>`;
+
+                    let easyRunCount = week === weeks ? 2 : 0;
+                    let thresholdAssigned = false;
 
                     for (let i = 0; i < 7; i++) {
                         const currentDate = new Date(weekStart);
@@ -163,11 +209,26 @@
                             continue;
                         }
 
+                        if (week === weeks && easyRunCount > 0 && !thresholdAssigned) {
+                            plan += `<div class="day"><strong>${dayNames[i]} (${currentDate.toLocaleDateString('el-GR')}):</strong> Easy Run - 5 χλμ</div>`;
+                            easyRunCount--;
+                            continue;
+                        }
+
+                        if (week === weeks && qualityDays.includes(i) && !thresholdAssigned) {
+                            const distance = prevWeekThresholdDistance * 0.6; // 40% less than previous week
+                            const splits = getSplits('Threshold', distance);
+                            plan += `<div class="day"><strong>${dayNames[i]} (${currentDate.toLocaleDateString('el-GR')}):</strong> Threshold - 2 χλμ ζέσταμα, ${splits}, 2 χλμ αποθεραπεία (Σύνολο: ${(distance + 4).toFixed(1)} χλμ)</div>`;
+                            thresholdAssigned = true;
+                            continue;
+                        }
+
                         if (i === days[days.length - 1] && week !== weeks) {
                             plan += `<div class="day"><strong>${dayNames[i]} (${currentDate.toLocaleDateString('el-GR')}):</strong> Long Run - ${longRun.toFixed(1)} χλμ</div>`;
                         } else if (qualityDays.includes(i) && week !== weeks) {
                             const type = qualityDays.indexOf(i) === 0 ? 'Threshold' : week > qualityWeeksStart ? 'Interval' : 'Repetition';
                             const distance = type === 'Threshold' ? weekMileage * 0.12 : type === 'Interval' ? weekMileage * 0.07 : weekMileage * 0.05;
+                            if (type === 'Threshold') prevWeekThresholdDistance = distance;
                             const splits = getSplits(type, distance);
                             plan += `<div class="day"><strong>${dayNames[i]} (${currentDate.toLocaleDateString('el-GR')}):</strong> ${type} - 2 χλμ ζέσταμα, ${splits}, 2 χλμ αποθεραπεία (Σύνολο: ${(distance + 4).toFixed(1)} χλμ)</div>`;
                         } else if (week !== weeks) {
@@ -179,6 +240,7 @@
                 }
 
                 document.getElementById('trainingPlan').innerHTML = plan;
+                document.getElementById('downloadPdf').style.display = 'inline-block';
             } catch (error) {
                 errorDiv.textContent = 'Σφάλμα κατά τη δημιουργία του προγράμματος: ' + error.message;
                 console.error(error);
@@ -213,6 +275,18 @@
                 }
             }
             return splits.join(', ');
+        }
+
+        function downloadPDF() {
+            const element = document.getElementById('trainingPlan');
+            const opt = {
+                margin: 1,
+                filename: 'Stefanaik_Training_Plan.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+            html2pdf().from(element).set(opt).save();
         }
     </script>
 </body>
