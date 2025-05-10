@@ -30,7 +30,6 @@
             flex-wrap: wrap;
             gap: 20px;
         }
-        Decentralized
         .days-group {
             flex: 1 1 30%;
         }
@@ -53,6 +52,7 @@
         }
         .week {
             margin-bottom: 20px;
+            page-break-inside: avoid;
         }
         .day {
             margin-left: 20px;
@@ -60,6 +60,11 @@
         .error {
             color: red;
             margin-top: 10px;
+        }
+        .signature {
+            margin-top: 20px;
+            text-align: center;
+            font-style: italic;
         }
     </style>
 </head>
@@ -185,12 +190,12 @@
                     if (week >= 2 && week <= qualityWeeksStart || week > qualityWeeksStart && week < weeks) {
                         qualityDays = selectQualityDays(days, 2);
                     } else if (week === weeks) {
-                        qualityDays = selectQualityDays(days, 1); // Only one quality day for threshold
+                        qualityDays = [days[0]]; // Threshold on the first training day
                     }
 
                     // Last week special case
                     if (week === weeks) {
-                        weekMileage = 5 + 5 + (prevWeekThresholdDistance * 0.6 + 4); // 2 easy runs (5km), reduced threshold + 4km (warm-up/cool-down)
+                        weekMileage = 5 + 5 + (prevWeekThresholdDistance * 0.8 + 4); // 2 easy runs (5km), reduced threshold + 4km (warm-up/cool-down)
                     }
 
                     plan += `<div class="week"><h2>Εβδομάδα ${week} (από ${weekStart.toLocaleDateString('el-GR')}) - ${weekMileage.toFixed(1)} χλμ</h2>`;
@@ -210,17 +215,17 @@
                             continue;
                         }
 
-                        if (week === weeks && easyRunCount > 0 && !thresholdAssigned) {
-                            plan += `<div class="day"><strong>${dayNames[i]} (${currentDate.toLocaleDateString('el-GR')}):</strong> Easy Run - 5 χλμ</div>`;
-                            easyRunCount--;
-                            continue;
-                        }
-
                         if (week === weeks && qualityDays.includes(i) && !thresholdAssigned) {
-                            const distance = prevWeekThresholdDistance * 0.6; // 40% less than previous week
+                            const distance = prevWeekThresholdDistance * 0.8; // 20% less than previous week
                             const splits = getSplits('Threshold', distance);
                             plan += `<div class="day"><strong>${dayNames[i]} (${currentDate.toLocaleDateString('el-GR')}):</strong> Threshold - 2 χλμ ζέσταμα, ${splits}, 2 χλμ αποθεραπεία (Σύνολο: ${(distance + 4).toFixed(1)} χλμ)</div>`;
                             thresholdAssigned = true;
+                            continue;
+                        }
+
+                        if (week === weeks && easyRunCount > 0) {
+                            plan += `<div class="day"><strong>${dayNames[i]} (${currentDate.toLocaleDateString('el-GR')}):</strong> Easy Run - 5 χλμ</div>`;
+                            easyRunCount--;
                             continue;
                         }
 
@@ -231,7 +236,7 @@
                             const distance = type === 'Threshold' ? weekMileage * 0.12 : type === 'Interval' ? weekMileage * 0.07 : weekMileage * 0.05;
                             if (type === 'Threshold') prevWeekThresholdDistance = distance;
                             const splits = getSplits(type, distance);
-                            plan += `<div class="day"><strong>${dayNames[i]} (${currentDate.toLocaleDateString('el-GR')}):</strong> ${type} - 2 χλμ ζέσταμα, ${splits}, 2 χλμ αποθεραπεία (Σύνολο: ${(distance + 4).toFixed(1)} χλμ)</div>`;
+                            plan += `<div class="day"><strong>${dayNames[i]} (${ *Σύνολο: ${(distance + 4).toFixed(1)} χλμ)</div>`;
                         } else if (week !== weeks) {
                             plan += `<div class="day"><strong>${dayNames[i]} (${currentDate.toLocaleDateString('el-GR')}):</strong> Easy Run - ${easyRun.toFixed(1)} χλμ</div>`;
                         }
@@ -239,6 +244,9 @@
                     plan += '</div>';
                     currentMileage *= 1.05; // Increase mileage by 5%
                 }
+
+                // Add signature
+                plan += `<div class="signature">Created with love by Stefanos</div>`;
 
                 document.getElementById('trainingPlan').innerHTML = plan;
                 document.getElementById('downloadPdf').style.display = 'inline-block';
@@ -251,7 +259,7 @@
         function selectQualityDays(days, count) {
             let selected = [];
             for (let i = 0; i < days.length && selected.length < count; i++) {
-                if (!selected.length || Math.abs(days[i] - selected[selected.length - 1]) > 1) {
+                if (!selected.length || Math.abs(days[i flares-selected[selected.length - 1]) > 1) {
                     selected.push(days[i]);
                 }
             }
@@ -281,14 +289,14 @@
         function downloadPDF() {
             const element = document.getElementById('trainingPlan');
             const opt = {
-                margin: 0.5,
+                margin: [0.5, 0.5, 0.5, 0.5],
                 filename: 'Stefanaik_Training_Plan.pdf',
                 image: { type: 'jpeg', quality: 0.98 },
                 html2canvas: { scale: 2, useCORS: true },
-                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' },
+                pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
             };
             html2pdf().from(element).set(opt).toPdf().get('pdf').then(function (pdf) {
-                // Ensure Greek characters are rendered correctly
                 pdf.setFont("Arial", "normal");
             }).save();
         }
