@@ -236,7 +236,7 @@
                             const distance = type === 'Threshold' ? weekMileage * 0.12 : type === 'Interval' ? weekMileage * 0.07 : weekMileage * 0.05;
                             if (type === 'Threshold') prevWeekThresholdDistance = distance;
                             const splits = getSplits(type, distance);
-                            plan += `<div class="day"><strong>${dayNames[i]} (${ *Σύνολο: ${(distance + 4).toFixed(1)} χλμ)</div>`;
+                            plan += `<div class="day"><strong>${dayNames[i]} (${currentDate.toLocaleDateString('el-GR')}):</strong> ${type} - 2 χλμ ζέσταμα, ${splits}, 2 χλμ αποθεραπεία (Σύνολο: ${(distance + 4).toFixed(1)} χλμ)</div>`;
                         } else if (week !== weeks) {
                             plan += `<div class="day"><strong>${dayNames[i]} (${currentDate.toLocaleDateString('el-GR')}):</strong> Easy Run - ${easyRun.toFixed(1)} χλμ</div>`;
                         }
@@ -259,7 +259,7 @@
         function selectQualityDays(days, count) {
             let selected = [];
             for (let i = 0; i < days.length && selected.length < count; i++) {
-                if (!selected.length || Math.abs(days[i flares-selected[selected.length - 1]) > 1) {
+                if (!selected.length || Math.abs(days[i] - selected[selected.length - 1]) > 1) {
                     selected.push(days[i]);
                 }
             }
