@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stefanaik - Πρόγραμμα Προπόνησης</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -47,31 +46,27 @@
         #trainingPlan {
             margin-top: 20px;
             border: 1px solid #ddd;
-            padding: 10px; /* Μειωμένο padding */
+            padding: 10px;
             font-family: 'Arial Unicode MS', Arial, sans-serif;
-            font-size: 12pt; /* Μέγεθος γραμματοσειράς 12 */
-            line-height: 1.5; /* Ύψος γραμμής για έλεγχο κενών */
+            font-size: 12pt;
+            line-height: 1.5;
         }
         .week {
-            margin-bottom: 10px; /* Μειωμένο margin για λιγότερα κενά */
-            page-break-inside: avoid;
-            break-inside: avoid;
+            margin-bottom: 10px;
         }
         .day {
             margin-left: 20px;
-            margin-bottom: 5px; /* Μειωμένο margin για λιγότερα κενά */
+            margin-bottom: 5px;
         }
         .error {
             color: red;
             margin-top: 10px;
         }
         .signature {
-            margin-top: 10px; /* Μειωμένο margin */
+            margin-top: 10px;
             text-align: center;
             font-style: italic;
-            font-size: 12pt; /* Ίδιο μέγεθος γραμματοσειράς */
-            page-break-inside: avoid;
-            break-inside: avoid;
+            font-size: 12pt;
         }
     </style>
 </head>
@@ -118,7 +113,7 @@
             <input type="number" id="weeklyMileage" name="weeklyMileage" min="1" step="0.1" required>
         </div>
         <button type="submit">Δημιουργία Προγράμματος</button>
-        <button type="button" id="downloadPdf" style="display: none;" onclick="downloadPDF()">Λήψη ως PDF</button>
+        <button type="button" id="copyPlan" style="display: none;" onclick="copyPlan()">Copy</button>
     </form>
     <div id="errorMessage" class="error"></div>
     <div id="trainingPlan"></div>
@@ -189,7 +184,7 @@
                 for (let week = 1; week <= weeks; week++) {
                     const weekStart = new Date(nextMonday.getTime() + (week - 1) * msPerWeek);
                     let weekMileage = week === weeks ? 0 : week === weeks - 1 ? currentMileage * 0.8 : currentMileage;
-                    let longRun = week === weeks ? 0 : weekMileage * 0.25;
+                    let longRun = week === weeks ? 0 : weekMileage * 0.25; // Long run 25% of weekly mileage
                     let easyRun = days.length > 1 && week !== weeks ? (weekMileage - longRun) / (days.length - 1) : 0;
 
                     // Quality workouts
@@ -256,7 +251,7 @@
                 plan += `<div class="signature">Created with love by Stefanos</div>`;
 
                 document.getElementById('trainingPlan').innerHTML = plan;
-                document.getElementById('downloadPdf').style.display = 'inline-block';
+                document.getElementById('copyPlan').style.display = 'inline-block';
             } catch (error) {
                 errorDiv.textContent = 'Σφάλμα κατά τη δημιουργία του προγράμματος: ' + error.message;
                 console.error(error);
@@ -293,20 +288,17 @@
             return splits.join(', ');
         }
 
-        function downloadPDF() {
-            const element = document.getElementById('trainingPlan');
-            const opt = {
-                margin: [0.2, 0.2, 0.2, 0.2], // Πολύ μικρά περιθώρια για περισσότερο περιεχόμενο
-                filename: 'Stefanaik_Training_Plan.pdf',
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, useCORS: true, windowWidth: 800 },
-                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' },
-                pagebreak: { mode: ['css', 'legacy'], avoid: ['.week', '.signature', '.day'] } // Αποφυγή διάσπασης ημερών, εβδομάδων, υπογραφής
-            };
-            html2pdf().from(element).set(opt).toPdf().get('pdf').then(function (pdf) {
-                pdf.setFont("Arial", "normal");
-                pdf.setFontSize(12); // Εξασφάλιση μεγέθους γραμματοσειράς 12 στο PDF
-            }).save();
+        function copyPlan() {
+            const planElement = document.getElementById('trainingPlan');
+            let text = planElement.innerText; // Get text content
+            // Format text for better readability
+            text = text.replace(/\n\s*\n/g, '\n\n'); // Limit multiple newlines
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Το πρόγραμμα αντιγράφηκε στο πρόχειρο!');
+            }).catch(err => {
+                console.error('Αποτυχία αντιγραφής: ', err);
+                alert('Σφάλμα κατά την αντιγραφή του προγράμματος.');
+            });
         }
     </script>
 </body>
