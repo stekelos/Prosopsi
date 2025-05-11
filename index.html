@@ -71,7 +71,7 @@
     </style>
 </head>
 <body>
-    <h1>Stefanaik - Δημιουργία Προγράμματος Προπόνησης</h1>
+    <h1>StefanaiK - Δημιουργία Προγράμματος Προπόνησης</h1>
     <form id="trainingForm">
         <div class="form-group">
             <label for="name">Όνομα:</label>
@@ -307,20 +307,31 @@
 
         function copyPlan() {
             const planElement = document.getElementById('trainingPlan');
+            if (!planElement) {
+                alert('Σφάλμα: Το πρόγραμμα δεν έχει δημιουργηθεί ακόμα.');
+                return;
+            }
+
             let text = '';
 
             // Add title
-            const title = planElement.querySelector('h2').innerText;
-            text += `${title}\n\n`;
+            const titleElement = planElement.querySelector('h2');
+            if (titleElement) {
+                text += `${titleElement.textContent}\n\n`;
+            } else {
+                console.warn('Title element not found');
+            }
 
             // Add weeks and days
             const weeks = planElement.querySelectorAll('.week');
             weeks.forEach((week, index) => {
-                const weekTitle = week.querySelector('h2').innerText;
-                text += `${weekTitle}\n`;
+                const weekTitleElement = week.querySelector('h2');
+                if (weekTitleElement) {
+                    text += `${weekTitleElement.textContent}\n`;
+                }
                 const days = week.querySelectorAll('.day');
                 days.forEach(day => {
-                    text += `  ${day.innerText}\n`;
+                    text += `  ${day.textContent}\n`;
                 });
                 // Add blank line after each week, except the last one
                 if (index < weeks.length - 1) {
@@ -329,30 +340,46 @@
             });
 
             // Add signature
-            const signature = planElement.querySelector('.signature').innerText;
-            text += `\n${signature}`;
+            const signatureElement = planElement.querySelector('.signature');
+            if (signatureElement) {
+                text += `\n${signatureElement.textContent}`;
+            } else {
+                console.warn('Signature element not found');
+            }
 
             // Copy to clipboard
-            navigator.clipboard.writeText(text).then(() => {
-                alert('Το πρόγραμμα αντιγράφηκε στο πρόχειρο!');
-            }).catch(err => {
-                // Fallback for older browsers
+            const copyTextToClipboard = async (textToCopy) => {
                 try {
-                    const textArea = document.createElement('textarea');
-                    textArea.value = text;
-                    textArea.style.position = 'fixed'; // Avoid scrolling to bottom
-                    textArea.style.opacity = '0'; // Make it invisible
-                    document.body.appendChild(textArea);
-                    textArea.focus();
-                    textArea.select();
-                    document.execCommand('copy');
-                    document.body.removeChild(textArea);
+                    await navigator.clipboard.writeText(textToCopy);
                     alert('Το πρόγραμμα αντιγράφηκε στο πρόχειρο!');
-                } catch (fallbackErr) {
-                    console.error('Αποτυχία αντιγραφής: ', err, fallbackErr);
-                    alert('Σφάλμα κατά την αντιγραφή του προγράμματος. Παρακαλώ αντιγράψτε το κείμενο χειροκίνητα από την οθόνη.');
+                } catch (err) {
+                    console.error('Αποτυχία navigator.clipboard: ', err);
+                    // Fallback to execCommand
+                    try {
+                        const textArea = document.createElement('textarea');
+                        textArea.value = textToCopy;
+                        textArea.style.position = 'fixed';
+                        textArea.style.top = '0';
+                        textArea.style.left = '0';
+                        textArea.style.opacity = '0';
+                        document.body.appendChild(textArea);
+                        textArea.focus();
+                        textArea.select();
+                        const successful = document.execCommand('copy');
+                        document.body.removeChild(textArea);
+                        if (successful) {
+                            alert('Το πρόγραμμα αντιγράφηκε στο πρόχειρο!');
+                        } else {
+                            throw new Error('execCommand failed');
+                        }
+                    } catch (fallbackErr) {
+                        console.error('Αποτυχία execCommand: ', fallbackErr);
+                        alert('Σφάλμα κατά την αντιγραφή του προγράμματος. Παρακαλώ επιλέξτε και αντιγράψτε το κείμενο χειροκίνητα από την οθόνη.');
+                    }
                 }
-            });
+            };
+
+            copyTextToClipboard(text);
         }
     </script>
 </body>
