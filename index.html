@@ -307,22 +307,30 @@
 
         function copyPlan() {
             const planElement = document.getElementById('trainingPlan');
-            // Convert HTML to plain text with proper formatting
             let text = '';
+
+            // Add title
             const title = planElement.querySelector('h2').innerText;
             text += `${title}\n\n`;
+
+            // Add weeks and days
             const weeks = planElement.querySelectorAll('.week');
-            weeks.forEach(week => {
+            weeks.forEach((week, index) => {
                 const weekTitle = week.querySelector('h2').innerText;
                 text += `${weekTitle}\n`;
                 const days = week.querySelectorAll('.day');
                 days.forEach(day => {
                     text += `  ${day.innerText}\n`;
                 });
-                text += '\n';
+                // Add blank line after each week, except the last one
+                if (index < weeks.length - 1) {
+                    text += '\n';
+                }
             });
+
+            // Add signature
             const signature = planElement.querySelector('.signature').innerText;
-            text += `${signature}\n`;
+            text += `\n${signature}`;
 
             // Copy to clipboard
             navigator.clipboard.writeText(text).then(() => {
@@ -332,14 +340,17 @@
                 try {
                     const textArea = document.createElement('textarea');
                     textArea.value = text;
+                    textArea.style.position = 'fixed'; // Avoid scrolling to bottom
+                    textArea.style.opacity = '0'; // Make it invisible
                     document.body.appendChild(textArea);
+                    textArea.focus();
                     textArea.select();
                     document.execCommand('copy');
                     document.body.removeChild(textArea);
                     alert('Το πρόγραμμα αντιγράφηκε στο πρόχειρο!');
                 } catch (fallbackErr) {
                     console.error('Αποτυχία αντιγραφής: ', err, fallbackErr);
-                    alert('Σφάλμα κατά την αντιγραφή του προγράμματος. Παρακαλώ αντιγράψτε το κείμενο χειροκίνητα.');
+                    alert('Σφάλμα κατά την αντιγραφή του προγράμματος. Παρακαλώ αντιγράψτε το κείμενο χειροκίνητα από την οθόνη.');
                 }
             });
         }
