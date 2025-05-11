@@ -185,7 +185,6 @@
                     const weekStart = new Date(nextMonday.getTime() + (week - 1) * msPerWeek);
                     let weekMileage = week === weeks ? 0 : week === weeks - 1 ? currentMileage * 0.8 : currentMileage;
                     let longRun = week === weeks ? 0 : weekMileage * 0.25; // Long run 25% of weekly mileage
-                    let easyRun = days.length > 1 && week !== weeks ? (weekMileage - longRun) / (days.length - 1) : 0;
 
                     // Quality workouts
                     let qualityDays = [];
@@ -193,6 +192,24 @@
                         qualityDays = selectQualityDays(days, 2);
                     } else if (week === weeks) {
                         qualityDays = [days[0]]; // Threshold on the first training day
+                    }
+
+                    // Calculate total quality mileage (including warm-up and cool-down)
+                    let qualityMileage = 0;
+                    if (week !== weeks && qualityDays.length > 0) {
+                        qualityDays.forEach((day, index) => {
+                            const type = index === 0 ? 'Threshold' : week > qualityWeeksStart ? 'Interval' : 'Repetition';
+                            const distance = type === 'Threshold' ? weekMileage * 0.12 : type === 'Interval' ? weekMileage * 0.07 : weekMileage * 0.05;
+                            qualityMileage += distance + 4; // Add warm-up (2km) and cool-down (2km)
+                        });
+                    }
+
+                    // Calculate easy run distance
+                    let easyRun = 0;
+                    if (week !== weeks) {
+                        const remainingDays = days.length - 1 - qualityDays.length; // Days minus long run and quality days
+                        const remainingMileage = weekMileage - longRun - qualityMileage; // Mileage minus long run and quality
+                        easyRun = remainingDays > 0 ? remainingMileage / remainingDays : 0;
                     }
 
                     // Last week special case
@@ -290,14 +307,40 @@
 
         function copyPlan() {
             const planElement = document.getElementById('trainingPlan');
-            let text = planElement.innerText; // Get text content
-            // Format text for better readability
-            text = text.replace(/\n\s*\n/g, '\n\n'); // Limit multiple newlines
+            // Convert HTML to plain text with proper formatting
+            let text = '';
+            const title = planElement.querySelector('h2').innerText;
+            text += `${title}\n\n`;
+            const weeks = planElement.querySelectorAll('.week');
+            weeks.forEach(week => {
+                const weekTitle = week.querySelector('h2').innerText;
+                text += `${weekTitle}\n`;
+                const days = week.querySelectorAll('.day');
+                days.forEach(day => {
+                    text += `  ${day.innerText}\n`;
+                });
+                text += '\n';
+            });
+            const signature = planElement.querySelector('.signature').innerText;
+            text += `${signature}\n`;
+
+            // Copy to clipboard
             navigator.clipboard.writeText(text).then(() => {
                 alert('Το πρόγραμμα αντιγράφηκε στο πρόχειρο!');
             }).catch(err => {
-                console.error('Αποτυχία αντιγραφής: ', err);
-                alert('Σφάλμα κατά την αντιγραφή του προγράμματος.');
+                // Fallback for older browsers
+                try {
+                    const textArea = document.createElement('textarea');
+                    textArea.value = text;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    alert('Το πρόγραμμα αντιγράφηκε στο πρόχειρο!');
+                } catch (fallbackErr) {
+                    console.error('Αποτυχία αντιγραφής: ', err, fallbackErr);
+                    alert('Σφάλμα κατά την αντιγραφή του προγράμματος. Παρακαλώ αντιγράψτε το κείμενο χειροκίνητα.');
+                }
             });
         }
     </script>
