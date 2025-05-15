@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Πρόγραμμα Επανάληψης Ήχου</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <button id="startButton">Ξεκίνημα</button>
+    <button id="stopButton">Σταμάτημα</button>
+
+    <script>
+        const startButton = document.getElementById('startButton');
+        const stopButton = document.getElementById('stopButton');
+        let intervalId;
+        let audioContext;
+        let oscillator;
+
+        function playBeep() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+
+            oscillator = audioContext.createOscillator();
+            oscillator.type = 'sine';
+            oscillator.frequency.value = 1000; // Συχνότητα 1000 Hz
+            oscillator.connect(audioContext.destination);
+            oscillator.start();
+            oscillator.stop(audioContext.currentTime + 0.1); // Διάρκεια 0.1 δευτερόλεπτα
+        }
+
+        function startSequence() {
+            playBeep(); // Αρχικό μπιπ
+
+            let timeElapsed = 0;
+            intervalId = setInterval(() => {
+                timeElapsed += 100; // Αύξηση του χρόνου κατά 100 ms
+
+                if (timeElapsed === 30000) { // 30 δευτερόλεπτα
+                    playBeep();
+                } else if (timeElapsed === 50000) { // 20 δευτερόλεπτα μετά το πρώτο μπιπ (30 + 20)
+                    playBeep();
+                } else if (timeElapsed === 60000) { // 10 δευτερόλεπτα μετά το δεύτερο μπιπ (50 + 10)
+                    playBeep();
+                    timeElapsed = 0; // Επαναφορά του χρόνου
+                }
+            }, 100); // Έλεγχος κάθε 100 ms
+        }
+
+        startButton.addEventListener('click', () => {
+            startSequence();
+        });
+
+        stopButton.addEventListener('click', () => {
+            clearInterval(intervalId);
+            if (oscillator) {
+                oscillator.stop();
+            }
+        });
+    </script>
+</body>
+</html>
