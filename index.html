@@ -1,386 +1,359 @@
-<!DOCTYPE html>
-<html lang="el">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stefanaik - Πρόγραμμα Προπόνησης</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            max-width: 800px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-        }
-        input, select {
-            width: 100%;
-            padding: 8px;
-            margin-bottom: 10px;
-        }
-        .days-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-        }
-        .days-group {
-            flex: 1 1 30%;
-        }
-        button {
-            padding: 10px 20px;
-            background-color: #28a745;
-            color: white;
-            border: none;
-            cursor: pointer;
-            margin-right: 10px;
-        }
-        button:hover {
-            background-color: #218838;
-        }
-        #trainingPlan {
-            margin-top: 20px;
-            border: 1px solid #ddd;
-            padding: 10px;
-            font-family: 'Arial Unicode MS', Arial, sans-serif;
-            font-size: 12pt;
-            line-height: 1.5;
-        }
-        .week {
-            margin-bottom: 10px;
-        }
-        .day {
-            margin-left: 20px;
-            margin-bottom: 5px;
-        }
-        .error {
-            color: red;
-            margin-top: 10px;
-        }
-        .signature {
-            margin-top: 10px;
-            text-align: center;
-            font-style: italic;
-            font-size: 12pt;
-        }
-    </style>
-</head>
-<body>
-    <h1>StefanaiK - Δημιουργία Προγράμματος Προπόνησης</h1>
-    <form id="trainingForm">
-        <div class="form-group">
-            <label for="name">Όνομα:</label>
-            <input type="text" id="name" name="name" required>
+import React, { useState, useEffect } from ‘react’;
+import { Sparkles, Cloud, Sun, Loader2 } from ‘lucide-react’;
+
+const DreamInterpreter = () => {
+const [dreamText, setDreamText] = useState(’’);
+const [interpretation, setInterpretation] = useState(null);
+const [isLoading, setIsLoading] = useState(false);
+const [error, setError] = useState(null);
+const [isAnimating, setIsAnimating] = useState(false);
+
+useEffect(() => {
+// Trigger animation when interpretation loads
+if (interpretation) {
+setIsAnimating(true);
+setTimeout(() => setIsAnimating(false), 1000);
+}
+}, [interpretation]);
+
+const interpretDream = async () => {
+if (!dreamText.trim()) return;
+
+```
+setIsLoading(true);
+setError(null);
+
+try {
+  const prompt = `You are a compassionate dream interpreter with expertise in psychology, symbolism, and emotional wellness. Analyze this dream and provide a thoughtful interpretation IN GREEK.
+```
+
+Όνειρο: “${dreamText}”
+
+Please respond with a JSON object containing ALL TEXT IN GREEK:
+{
+“mainThemes”: [“θέμα1”, “θέμα2”, “θέμα3”],
+“emotionalTone”: “περιγραφή των συναισθηματικών υποτόνων”,
+“symbols”: [
+{“symbol”: “σύμβολο1”, “meaning”: “νόημα1”},
+{“symbol”: “σύμβολο2”, “meaning”: “νόημα2”}
+],
+“personalInsight”: “βαθιά προσωπική ματιά για το τι μπορεί να σημαίνει αυτό το όνειρο”,
+“guidance”: “απαλή καθοδήγηση για στοχασμό ή δράση”
+}
+
+IMPORTANT: All responses must be in GREEK. Provide a warm, supportive interpretation in Greek that helps the dreamer understand their subconscious messages.`;
+
+```
+  const response = await window.claude.complete(prompt);
+  const parsedResponse = JSON.parse(response);
+  setInterpretation(parsedResponse);
+} catch (err) {
+  setError('Δεν ήταν δυνατή η ερμηνεία του ονείρου σου. Παρακαλώ δοκίμασε ξανά.');
+  console.error('Error interpreting dream:', err);
+} finally {
+  setIsLoading(false);
+}
+```
+
+};
+
+const handleKeyPress = (e) => {
+if (e.key === ‘Enter’ && e.ctrlKey) {
+interpretDream();
+}
+};
+
+return (
+<div className="min-h-screen bg-gradient-to-b from-indigo-950 via-purple-900 to-blue-900 text-white p-6 pt-12 relative overflow-hidden">
+{/* Floating clouds */}
+<div className="absolute inset-0 pointer-events-none">
+<div className="cloud cloud-1"></div>
+<div className="cloud cloud-2"></div>
+<div className="cloud cloud-3"></div>
+<div className="cloud cloud-4"></div>
+<div className="cloud cloud-5"></div>
+</div>
+
+```
+  <div className="max-w-4xl mx-auto relative z-10">
+    {/* Header */}
+    <div className="text-center mb-12 animate-fade-in">
+      <h1 className="text-4xl font-light tracking-wider bg-gradient-to-r from-purple-300 to-blue-300 bg-clip-text text-transparent mb-4">
+        Ερμηνεία Ονείρων
+      </h1>
+      <p className="text-purple-200 text-lg opacity-80">
+        Μοιράσου το όνειρό σου, ανακάλυψε το νόημά του ✨
+      </p>
+    </div>
+
+    {/* Dream Input Section */}
+    <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 mb-8 shadow-xl border border-white/20">
+      <div className="mb-6">
+        <label className="block text-purple-200 mb-3 text-lg">
+          Πες μου το όνειρό σου...
+        </label>
+        <textarea
+          value={dreamText}
+          onChange={(e) => setDreamText(e.target.value)}
+          onKeyPress={handleKeyPress}
+          placeholder="Περίγραψε το όνειρό σου με όσες περισσότερες λεπτομέρειες θυμάσαι... ☁️"
+          className="w-full h-40 bg-white/5 border border-white/10 rounded-xl p-4 text-white placeholder-purple-300/50 focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-400/30 transition-all duration-300 resize-none"
+        />
+      </div>
+      
+      <button
+        onClick={interpretDream}
+        disabled={isLoading || !dreamText.trim()}
+        className={`w-full py-3 px-6 rounded-xl font-medium transition-all duration-300 ${
+          isLoading || !dreamText.trim()
+            ? 'bg-purple-800/50 cursor-not-allowed'
+            : 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 transform hover:scale-105'
+        } flex items-center justify-center space-x-2`}
+      >
+        {isLoading ? (
+          <>
+            <Loader2 className="w-5 h-5 animate-spin" />
+            <span>Ερμηνεύω το όνειρό σου...</span>
+          </>
+        ) : (
+          <span>Ερμήνευσε το όνειρο</span>
+        )}
+      </button>
+      
+      {error && (
+        <div className="mt-4 p-4 bg-red-500/20 border border-red-500/50 rounded-lg text-red-200">
+          {error}
         </div>
-        <div class="form-group">
-            <label>Ποιες μέρες θα γυμναστείτε; (Επιλέξτε τουλάχιστον 3)</label>
-            <div class="days-container">
-                <div class="days-group">
-                    <input type="checkbox" name="days" value="0"> Δευτέρα<br>
-                    <input type="checkbox" name="days" value="1"> Τρίτη<br>
-                    <input type="checkbox" name="days" value="2"> Τετάρτη
+      )}
+    </div>
+
+    {/* Interpretation Section */}
+    {interpretation && (
+      <div className={`space-y-6 ${isAnimating ? 'animate-fade-in' : ''}`}>
+        {/* Main Themes */}
+        <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 shadow-xl border border-white/20">
+          <h2 className="text-2xl font-light mb-4">
+            Κύρια θέματα
+          </h2>
+          <div className="flex flex-wrap gap-3">
+            {interpretation.mainThemes.map((theme, index) => (
+              <span 
+                key={index}
+                className="bg-purple-500/30 px-4 py-2 rounded-full text-purple-200 border border-purple-400/30"
+              >
+                {theme}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        {/* Emotional Tone */}
+        <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 shadow-xl border border-white/20">
+          <h2 className="text-2xl font-light mb-4">
+            Συναισθηματική ατμόσφαιρα
+          </h2>
+          <p className="text-blue-200 leading-relaxed">
+            {interpretation.emotionalTone}
+          </p>
+        </div>
+
+        {/* Symbols */}
+        <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 shadow-xl border border-white/20">
+          <h2 className="text-2xl font-light mb-4">
+            Σύμβολα ονείρου
+          </h2>
+          <div className="grid gap-4">
+            {interpretation.symbols.map((symbol, index) => (
+              <div key={index} className="flex items-start space-x-4">
+                <div className="bg-purple-500/20 p-3 rounded-lg">
+                  <span className="text-purple-300 font-medium">{symbol.symbol}</span>
                 </div>
-                <div class="days-group">
-                    <input type="checkbox" name="days" value="3"> Πέμπτη<br>
-                    <input type="checkbox" name="days" value="4"> Παρασκευή<br>
-                    <input type="checkbox" name="days" value="5"> Σάββατο
-                </div>
-                <div class="days-group">
-                    <input type="checkbox" name="days" value="6"> Κυριακή
-                </div>
-            </div>
+                <p className="text-purple-200 flex-1">{symbol.meaning}</p>
+              </div>
+            ))}
+          </div>
         </div>
-        <div class="form-group">
-            <label for="distance">Απόσταση αγώνα:</label>
-            <select id="distance" name="distance" required>
-                <option value="5">5 χλμ</option>
-                <option value="10">10 χλμ</option>
-                <option value="21.1">Ημιμαραθώνιος (21.1 χλμ)</option>
-                <option value="42.2">Μαραθώνιος (42.2 χλμ)</option>
-            </select>
+
+        {/* Personal Insight */}
+        <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 shadow-xl border border-white/20">
+          <h2 className="text-2xl font-light mb-4">
+            Προσωπική ματιά
+          </h2>
+          <p className="text-indigo-200 leading-relaxed text-lg">
+            {interpretation.personalInsight}
+          </p>
         </div>
-        <div class="form-group">
-            <label for="raceDate">Ημερομηνία αγώνα:</label>
-            <input type="date" id="raceDate" name="raceDate" required>
+
+        {/* Guidance */}
+        <div className="bg-gradient-to-r from-purple-800/30 to-blue-800/30 backdrop-blur-lg rounded-2xl p-8 shadow-xl border border-white/20">
+          <h2 className="text-2xl font-light mb-4">
+            Καθοδήγηση για στοχασμό
+          </h2>
+          <p className="text-yellow-100 leading-relaxed">
+            {interpretation.guidance}
+          </p>
         </div>
-        <div class="form-group">
-            <label for="weeklyMileage">Χιλιόμετρα ανά εβδομάδα (τρέχοντα):</label>
-            <input type="number" id="weeklyMileage" name="weeklyMileage" min="1" step="0.1" required>
-        </div>
-        <button type="submit">Δημιουργία Προγράμματος</button>
-        <button type="button" id="copyPlan" style="display: none;" onclick="copyPlan()">Copy</button>
-    </form>
-    <div id="errorMessage" class="error"></div>
-    <div id="trainingPlan"></div>
+      </div>
+    )}
 
-    <script>
-        document.getElementById('trainingForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            generateTrainingPlan();
-        });
 
-        function generateTrainingPlan() {
-            const errorDiv = document.getElementById('errorMessage');
-            errorDiv.textContent = '';
-            document.getElementById('trainingPlan').innerHTML = '';
+  </div>
 
-            const name = document.getElementById('name').value;
-            const days = Array.from(document.querySelectorAll('input[name="days"]:checked')).map(d => parseInt(d.value));
-            const raceDistance = parseFloat(document.getElementById('distance').value);
-            const raceDateInput = document.getElementById('raceDate').value;
-            let weeklyMileage = parseFloat(document.getElementById('weeklyMileage').value);
-            const today = new Date('2025-05-10');
+  <style jsx>{`
+    @keyframes fade-in {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
 
-            // Validation
-            if (!name) {
-                errorDiv.textContent = 'Παρακαλώ εισάγετε το όνομά σας.';
-                return;
-            }
-            if (days.length < 3) {
-                errorDiv.textContent = 'Παρακαλώ επιλέξτε τουλάχιστον 3 μέρες προπόνησης.';
-                return;
-            }
-            if (isNaN(raceDistance)) {
-                errorDiv.textContent = 'Παρακαλώ επιλέξτε απόσταση αγώνα.';
-                return;
-            }
-            if (!raceDateInput) {
-                errorDiv.textContent = 'Παρακαλώ επιλέξτε ημερομηνία αγώνα.';
-                return;
-            }
-            if (isNaN(weeklyMileage) || weeklyMileage <= 0) {
-                errorDiv.textContent = 'Παρακαλώ εισάγετε έγκυρα εβδομαδιαία χιλιόμετρα.';
-                return;
-            }
+    .animate-fade-in {
+      animation: fade-in 0.8s ease-out forwards;
+    }
 
-            const raceDate = new Date(raceDateInput);
-            const distanceText = document.getElementById('distance').options[document.getElementById('distance').selectedIndex].text;
+    @keyframes float-cloud {
+      from {
+        transform: translateX(-100%);
+      }
+      to {
+        transform: translateX(calc(100vw + 100%));
+      }
+    }
 
-            // Find next Monday
-            const nextMonday = new Date(today);
-            nextMonday.setDate(today.getDate() + ((1 + 7 - today.getDay()) % 7 || 7));
+    .cloud {
+      position: absolute;
+      background: white;
+      border-radius: 50px;
+      opacity: 0.3;
+      animation: float-cloud linear infinite;
+    }
 
-            // Calculate weeks until race
-            const msPerWeek = 7 * 24 * 60 * 60 * 1000;
-            const weeks = Math.ceil((raceDate - nextMonday) / msPerWeek);
-            if (weeks < 2) {
-                errorDiv.textContent = 'Ο αγώνας πρέπει να είναι τουλάχιστον 2 εβδομάδες μετά τις 19 Μαΐου 2025.';
-                return;
-            }
+    .cloud::before,
+    .cloud::after {
+      content: '';
+      position: absolute;
+      background: white;
+      border-radius: 50%;
+    }
 
-            // Initialize training plan
-            let plan = `<h2>Προσωποποιημένο Πρόγραμμα για ${name} στα ${distanceText}</h2>`;
-            let currentMileage = weeklyMileage * 0.9; // First week -10%
-            const qualityWeeksStart = weeks - 6; // Last 5 weeks before race week for quality
-            const dayNames = ['Δευτέρα', 'Τρίτη', 'Τετάρτη', 'Πέμπτη', 'Παρασκευή', 'Σάββατο', 'Κυριακή'];
-            let prevWeekThresholdDistance = 0;
+    .cloud-1 {
+      width: 100px;
+      height: 40px;
+      top: 15%;
+      animation-duration: 25s;
+      animation-delay: -2s;
+    }
 
-            try {
-                for (let week = 1; week <= weeks; week++) {
-                    const weekStart = new Date(nextMonday.getTime() + (week - 1) * msPerWeek);
-                    let weekMileage = week === weeks ? 0 : week === weeks - 1 ? currentMileage * 0.8 : currentMileage;
-                    let longRun = week === weeks ? 0 : weekMileage * 0.25; // Long run 25% of weekly mileage
+    .cloud-1::before {
+      width: 50px;
+      height: 50px;
+      top: -25px;
+      left: 10px;
+    }
 
-                    // Quality workouts
-                    let qualityDays = [];
-                    if (week >= 2 && week <= qualityWeeksStart || week > qualityWeeksStart && week < weeks) {
-                        qualityDays = selectQualityDays(days, 2);
-                    } else if (week === weeks) {
-                        qualityDays = [days[0]]; // Threshold on the first training day
-                    }
+    .cloud-1::after {
+      width: 60px;
+      height: 60px;
+      top: -30px;
+      right: 10px;
+    }
 
-                    // Calculate total quality mileage (including warm-up and cool-down)
-                    let qualityMileage = 0;
-                    if (week !== weeks && qualityDays.length > 0) {
-                        qualityDays.forEach((day, index) => {
-                            const type = index === 0 ? 'Threshold' : week > qualityWeeksStart ? 'Interval' : 'Repetition';
-                            const distance = type === 'Threshold' ? weekMileage * 0.12 : type === 'Interval' ? weekMileage * 0.07 : weekMileage * 0.05;
-                            qualityMileage += distance + 4; // Add warm-up (2km) and cool-down (2km)
-                        });
-                    }
+    .cloud-2 {
+      width: 80px;
+      height: 30px;
+      top: 35%;
+      animation-duration: 30s;
+      animation-delay: -10s;
+    }
 
-                    // Calculate easy run distance
-                    let easyRun = 0;
-                    if (week !== weeks) {
-                        const remainingDays = days.length - 1 - qualityDays.length; // Days minus long run and quality days
-                        const remainingMileage = weekMileage - longRun - qualityMileage; // Mileage minus long run and quality
-                        easyRun = remainingDays > 0 ? remainingMileage / remainingDays : 0;
-                    }
+    .cloud-2::before {
+      width: 40px;
+      height: 40px;
+      top: -20px;
+      left: 10px;
+    }
 
-                    // Last week special case
-                    if (week === weeks) {
-                        weekMileage = 5 + 5 + (prevWeekThresholdDistance * 0.8 + 4); // 2 easy runs (5km), reduced threshold + 4km (warm-up/cool-down)
-                    }
+    .cloud-2::after {
+      width: 50px;
+      height: 50px;
+      top: -25px;
+      right: 10px;
+    }
 
-                    plan += `<div class="week"><h2>Εβδομάδα ${week} (από ${weekStart.toLocaleDateString('el-GR')}) - ${weekMileage.toFixed(1)} χλμ</h2>`;
+    .cloud-3 {
+      width: 120px;
+      height: 40px;
+      top: 60%;
+      animation-duration: 35s;
+      animation-delay: -15s;
+    }
 
-                    let easyRunCount = week === weeks ? 2 : 0;
-                    let thresholdAssigned = false;
+    .cloud-3::before {
+      width: 60px;
+      height: 60px;
+      top: -30px;
+      left: 20px;
+    }
 
-                    for (let i = 0; i < 7; i++) {
-                        const currentDate = new Date(weekStart);
-                        currentDate.setDate(weekStart.getDate() + i);
-                        if (week === weeks && currentDate.toDateString() === raceDate.toDateString()) {
-                            plan += `<div class="day"><strong>${dayNames[i]} (${currentDate.toLocaleDateString('el-GR')}):</strong> Αγώνας - ${raceDistance} χλμ</div>`;
-                            continue;
-                        }
-                        if (!days.includes(i)) {
-                            plan += `<div class="day"><strong>${dayNames[i]} (${currentDate.toLocaleDateString('el-GR')}):</strong> Ξεκούραση</div>`;
-                            continue;
-                        }
+    .cloud-3::after {
+      width: 70px;
+      height: 70px;
+      top: -35px;
+      right: 15px;
+    }
 
-                        if (week === weeks && qualityDays.includes(i) && !thresholdAssigned) {
-                            const distance = prevWeekThresholdDistance * 0.8; // 20% less than previous week
-                            const splits = getSplits('Threshold', distance);
-                            plan += `<div class="day"><strong>${dayNames[i]} (${currentDate.toLocaleDateString('el-GR')}):</strong> Threshold - 2 χλμ ζέσταμα, ${splits}, 2 χλμ αποθεραπεία (Σύνολο: ${(distance + 4).toFixed(1)} χλμ)</div>`;
-                            thresholdAssigned = true;
-                            continue;
-                        }
+    .cloud-4 {
+      width: 90px;
+      height: 35px;
+      top: 75%;
+      animation-duration: 28s;
+      animation-delay: -5s;
+    }
 
-                        if (week === weeks && easyRunCount > 0) {
-                            plan += `<div class="day"><strong>${dayNames[i]} (${currentDate.toLocaleDateString('el-GR')}):</strong> Easy Run - 5 χλμ</div>`;
-                            easyRunCount--;
-                            continue;
-                        }
+    .cloud-4::before {
+      width: 45px;
+      height: 45px;
+      top: -22px;
+      left: 15px;
+    }
 
-                        if (i === days[days.length - 1] && week !== weeks) {
-                            plan += `<div class="day"><strong>${dayNames[i]} (${currentDate.toLocaleDateString('el-GR')}):</strong> Long Run - ${longRun.toFixed(1)} χλμ</div>`;
-                        } else if (qualityDays.includes(i) && week !== weeks) {
-                            const type = qualityDays.indexOf(i) === 0 ? 'Threshold' : week > qualityWeeksStart ? 'Interval' : 'Repetition';
-                            const distance = type === 'Threshold' ? weekMileage * 0.12 : type === 'Interval' ? weekMileage * 0.07 : weekMileage * 0.05;
-                            if (type === 'Threshold') prevWeekThresholdDistance = distance;
-                            const splits = getSplits(type, distance);
-                            plan += `<div class="day"><strong>${dayNames[i]} (${currentDate.toLocaleDateString('el-GR')}):</strong> ${type} - 2 χλμ ζέσταμα, ${splits}, 2 χλμ αποθεραπεία (Σύνολο: ${(distance + 4).toFixed(1)} χλμ)</div>`;
-                        } else if (week !== weeks) {
-                            plan += `<div class="day"><strong>${dayNames[i]} (${currentDate.toLocaleDateString('el-GR')}):</strong> Easy Run - ${easyRun.toFixed(1)} χλμ</div>`;
-                        }
-                    }
-                    plan += '</div>';
-                    currentMileage *= 1.05; // Increase mileage by 5%
-                }
+    .cloud-4::after {
+      width: 55px;
+      height: 55px;
+      top: -27px;
+      right: 10px;
+    }
 
-                // Add signature
-                plan += `<div class="signature">Created with love by Stefanos</div>`;
+    .cloud-5 {
+      width: 110px;
+      height: 45px;
+      top: 45%;
+      animation-duration: 32s;
+      animation-delay: -20s;
+    }
 
-                document.getElementById('trainingPlan').innerHTML = plan;
-                document.getElementById('copyPlan').style.display = 'inline-block';
-            } catch (error) {
-                errorDiv.textContent = 'Σφάλμα κατά τη δημιουργία του προγράμματος: ' + error.message;
-                console.error(error);
-            }
-        }
+    .cloud-5::before {
+      width: 55px;
+      height: 55px;
+      top: -27px;
+      left: 15px;
+    }
 
-        function selectQualityDays(days, count) {
-            let selected = [];
-            for (let i = 0; i < days.length && selected.length < count; i++) {
-                if (!selected.length || Math.abs(days[i] - selected[selected.length - 1]) > 1) {
-                    selected.push(days[i]);
-                }
-            }
-            return selected;
-        }
+    .cloud-5::after {
+      width: 65px;
+      height: 65px;
+      top: -32px;
+      right: 15px;
+    }
+  `}</style>
+</div>
+```
 
-        function getSplits(type, distance) {
-            const thresholds = [1000, 1200, 1600, 2000];
-            const intervals = [200, 300, 400, 500];
-            const repetitions = [200, 300, 400];
-            const options = type === 'Threshold' ? thresholds : type === 'Interval' ? intervals : repetitions;
-            let remaining = distance * 1000;
-            let splits = [];
-            while (remaining > 0) {
-                const split = options[Math.min(Math.floor(remaining / 1000), options.length - 1)];
-                const count = Math.floor(remaining / split);
-                if (count > 0) {
-                    splits.push(`${count}x${split}μ`);
-                    remaining -= count * split;
-                } else {
-                    break;
-                }
-            }
-            return splits.join(', ');
-        }
+);
+};
 
-        function copyPlan() {
-            const planElement = document.getElementById('trainingPlan');
-            if (!planElement) {
-                alert('Σφάλμα: Το πρόγραμμα δεν έχει δημιουργηθεί ακόμα.');
-                return;
-            }
-
-            let text = '';
-
-            // Add title
-            const titleElement = planElement.querySelector('h2');
-            if (titleElement) {
-                text += `${titleElement.textContent}\n\n`;
-            } else {
-                console.warn('Title element not found');
-            }
-
-            // Add weeks and days
-            const weeks = planElement.querySelectorAll('.week');
-            weeks.forEach((week, index) => {
-                const weekTitleElement = week.querySelector('h2');
-                if (weekTitleElement) {
-                    text += `${weekTitleElement.textContent}\n`;
-                }
-                const days = week.querySelectorAll('.day');
-                days.forEach(day => {
-                    text += `  ${day.textContent}\n`;
-                });
-                // Add blank line after each week, except the last one
-                if (index < weeks.length - 1) {
-                    text += '\n';
-                }
-            });
-
-            // Add signature
-            const signatureElement = planElement.querySelector('.signature');
-            if (signatureElement) {
-                text += `\n${signatureElement.textContent}`;
-            } else {
-                console.warn('Signature element not found');
-            }
-
-            // Copy to clipboard
-            const copyTextToClipboard = async (textToCopy) => {
-                try {
-                    await navigator.clipboard.writeText(textToCopy);
-                    alert('Το πρόγραμμα αντιγράφηκε στο πρόχειρο!');
-                } catch (err) {
-                    console.error('Αποτυχία navigator.clipboard: ', err);
-                    // Fallback to execCommand
-                    try {
-                        const textArea = document.createElement('textarea');
-                        textArea.value = textToCopy;
-                        textArea.style.position = 'fixed';
-                        textArea.style.top = '0';
-                        textArea.style.left = '0';
-                        textArea.style.opacity = '0';
-                        document.body.appendChild(textArea);
-                        textArea.focus();
-                        textArea.select();
-                        const successful = document.execCommand('copy');
-                        document.body.removeChild(textArea);
-                        if (successful) {
-                            alert('Το πρόγραμμα αντιγράφηκε στο πρόχειρο!');
-                        } else {
-                            throw new Error('execCommand failed');
-                        }
-                    } catch (fallbackErr) {
-                        console.error('Αποτυχία execCommand: ', fallbackErr);
-                        alert('Σφάλμα κατά την αντιγραφή του προγράμματος. Παρακαλώ επιλέξτε και αντιγράψτε το κείμενο χειροκίνητα από την οθόνη.');
-                    }
-                }
-            };
-
-            copyTextToClipboard(text);
-        }
-    </script>
-</body>
-</html>
+export default DreamInterpreter;
